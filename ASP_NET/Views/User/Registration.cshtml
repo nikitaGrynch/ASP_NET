@@ -62,7 +62,13 @@
     </div>
     <div class="mb-3">
         <label asp-for="Avatar" class="form-label">Upload avatar image</label>
-        <input type="file" asp-for="Avatar" class="form-control" />
+        <input type="file" asp-for="Avatar" class="form-control @(validationResult is null ? "" : (validationResult.AvatarMessage is null ? "is-valid" : "is-invalid") )" />
+        @if (validationResult?.AvatarMessage is not null)
+        {
+            <div class="invalid-feedback">
+                @validationResult.AvatarMessage
+            </div>
+        }
     </div>
     <div class="form-check">
         <input class="form-check-input" asp-for="IsAgree">
