@@ -2,77 +2,49 @@
 	ViewData["Title"] = "Registration Page";
 }
 
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Registration Form</title>
-	<style>
-		body {
-			background-color: #FFFFCC;
-		}
-		h1 {
-			color: #003366;
-			text-align: center;
-		}
-		form {
-			margin: 0 auto;
-			width: 400px;
-			background-color: #FFFFFF;
-			padding: 20px;
-			border-radius: 10px;
-			box-shadow: 0 0 10px #003366;
-		}
-		label {
-			display: block;
-			margin-bottom: 5px;
-			color: #003366;
-			font-weight: bold;
-		}
-		input[type="text"], input[type="email"], input[type="password"] {
-			width: 100%;
-			padding: 10px;
-			margin-bottom: 20px;
-			border: none;
-			border-radius: 5px;
-			box-shadow: 0 0 5px #003366;
-			font-size: 16px;
-			color: #003366;
-		}
-		input[type="submit"] {
-			background-color: #003366;
-			color: #FFFFFF;
-			padding: 10px 20px;
-			border: none;
-			border-radius: 5px;
-			cursor: pointer;
-			font-size: 16px;
-			margin-top: 20px;
-		}
-		input[type="submit"]:hover {
-			background-color: #FFFFCC;
-			color: #003366;
-		}
-	</style>
-</head>
-<body>
-	<h1>Registration Form</h1>
-	<form method="post" action="process-registration.php">
-		<label for="login">Login:</label>
-		<input type="text" id="login" name="login" required>
+<div style="width: 300px; margin: 0 auto">
+	<h3>Registration Form</h3>
+	<form class="needs-validation" novalidate>
+		<div class="form-group">
+			<label for="login" class="form-label">Login:</label>
+			<input type="text" class="form-control" id="login" name="login" required>
+		</div>
 
-		<label for="password">Password:</label>
-		<input type="password" id="password" name="password" required>
+		<div class="form-group">
+			<label for="password" class="form-label">Password:</label>
+			<input type="password" id="password" name="password" class="form-control" required>
+		</div>
+		<label for="confirm-password" class="form-label">Confirm Password:</label>
+		<input type="password" id="confirm-password" name="confirm-password" class="form-control" required>
+		<div class="form-group">
+			<label for="real-name" class="form-label">Real Name:</label>
+			<input type="text" id="real-name" name="real-name" class="form-control" required>
+		</div>
+		<label for="email" class="form-label">Email:</label>
+		<input type="email" id="email" name="email" class="form-control" required>
 
-		<label for="confirm-password">Confirm Password:</label>
-		<input type="password" id="confirm-password" name="confirm-password" required>
-
-		<label for="real-name">Real Name:</label>
-		<input type="text" id="real-name" name="real-name" required>
-
-		<label for="email">Email:</label>
-		<input type="email" id="email" name="email" required>
-
-		<input type="submit" value="Register">
+		<button class="btn btn-primary" type="submit">Register</button>
 	</form>
-</body>
-</html>
+</div>
+<script >
+// Example starter JavaScript for disabling form submissions if there are invalid fields
+(function () {
+  'use strict'
+
+  // Fetch all the forms we want to apply custom Bootstrap validation styles to
+  var forms = document.querySelectorAll('.needs-validation')
+
+  // Loop over them and prevent submission
+  Array.prototype.slice.call(forms)
+    .forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+
+        form.classList.add('was-validated')
+      }, false)
+    })
+})()
+</script>
