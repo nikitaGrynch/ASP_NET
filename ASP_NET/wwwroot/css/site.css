@@ -20,3 +20,15 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+tr:nth-child(odd) {
+  background-color: gray;
+}
+
+tr:nth-child(even) {
+  background-color: darkgray;
+}
+
+table, th, td {
+  border: 1px solid purple;
+}

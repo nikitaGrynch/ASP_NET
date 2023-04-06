@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = "Users";
+}
+
+<div class="text-center">
+    <h1 class="display-4">User Page</h1>
+</div>
+
+@* 
+<h3><a href="/User/Registration">Registration</a></h3> 
+При прямом указании адреса не учитываются правила маршрутизации.
+Если они изменятся, например с помощьдю добавления культуры (uk-UA),
+то все ссылки придется переделывать
+
+Когда указываются asp- атрибуты, то ссылка формируется
+согласно правилам муршрутизации. Такие ссылки изменяются автоматически
+
+*@
+<h3><a asp-controller="User" asp-action="Registration">Registration</a></h3>
+<h3><a asp-controller="User" asp-action="Registration_HW">Registration_HW</a></h3>

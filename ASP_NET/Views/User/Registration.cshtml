@@ -1,0 +1,134 @@
+@using ASP_NET.Models.User
+@model ASP_NET.Models.User.UserRegistrationModel
+@{
+    ViewData["Title"] = "Registration Page";
+    var validationResult = ViewData["validationResult"] as UserValidationModel;
+}
+
+<div class="text-center">
+    <h1 class="display-4">Registration</h1>
+</div>
+
+<form method="post" asp-controller="User" asp-action="RegisterUser" enctype="multipart/form-data">
+    <div class="form-group">
+        <label asp-for="Login">Login</label>
+        <input type="text" asp-for="Login" class="form-control @(validationResult is null ? "" : (validationResult.LoginMessage is null ? "is-valid" : "is-invalid") ) " caria-describedby="emailHelp" placeholder="Choose a login">
+        @if (validationResult?.LoginMessage is not null)
+        {
+            <div class="invalid-feedback">
+                @validationResult.LoginMessage
+            </div>
+        }
+    </div>
+    <div class="form-group">
+        <label asp-for="Password">Password</label>
+        <input type="password" class="form-control @(validationResult is null ? "" : (validationResult.PasswordMessage is null ? "is-valid" : "is-invalid") ) " asp-for="Password" placeholder="Choose a Password">
+        @if (validationResult?.PasswordMessage is not null)
+        {
+            <div class="invalid-feedback">
+                @validationResult.PasswordMessage
+            </div>
+        }
+    </div>
+    <div class="form-group">
+        <label asp-for="RepeatPassword">Confirm Password</label>
+        <input type="password" class="form-control @(validationResult is null ? "" : (validationResult.RepeatPasswordMessage is null ? "is-valid" : "is-invalid") ) " asp-for="RepeatPassword" placeholder="Repeat Password">
+        @if (validationResult?.RepeatPasswordMessage is not null)
+        {
+            <div class="invalid-feedback">
+                @validationResult.RepeatPasswordMessage
+            </div>
+        }
+    </div>
+    <div class="form-group">
+        <label asp-for="Email">Email</label>
+        <input type="email" asp-for="Email" class="form-control @(validationResult is null ? "" : (validationResult.EmailMessage is null ? "is-valid" : "is-invalid") ) " placeholder="Enter your email">
+        @if (validationResult?.EmailMessage is not null)
+        {
+            <div class="invalid-feedback">
+                @validationResult.EmailMessage
+            </div>
+        }
+    </div>
+    <div class="form-group">
+        <label asp-for="RealName">Real Name</label>
+        <input type="text" asp-for="RealName" class="form-control @(validationResult is null ? "" : (validationResult.RealNameMessage is null ? "is-valid" : "is-invalid") ) " placeholder="Enter your real name">
+        @if (validationResult?.RealNameMessage is not null)
+        {
+            <div class="invalid-feedback">
+                @validationResult.RealNameMessage
+            </div>
+        }
+    </div>
+    <div class="mb-3">
+        <label asp-for="Avatar" class="form-label">Upload avatar image</label>
+        <input type="file" asp-for="Avatar" class="form-control" />
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" asp-for="IsAgree">
+        <label class="form-check-label @(validationResult is null ? "" : (validationResult.RealNameMessage is null ? "is-valid" : "is-invalid") ) " asp-for="IsAgree">I agree with the terms and conditions and the privacy policy</label>
+        @if (validationResult?.IsAgreeMessage is not null)
+        {
+            <div class="invalid-feedback">
+                @validationResult.IsAgreeMessage
+            </div>
+        }
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+@if (validationResult is not null)
+{
+    <p>
+        Validation results:<br/>
+        @validationResult.LoginMessage<br/>
+    </p>
+}
+<hr/>
+<h2>Работа с формами</h2>
+<p>
+    В ASP идея моделей, как описание комплексных данных, закладывается
+    в основу организации как самих форм, так и контроллеров, которые 
+    эти данны обрабатывают.
+    При создании формы, как правило, все начинается с модели
+</p>
+<p>
+    Согласование передачи данных происходит по именам: следует 
+    придерживаться одинаковых имен в форме и в контроллере. Во избежание ошибок
+    настоятельно рекоммендуется использовать тег-помощник с атрибутом asp-for.
+    Значение атрибута отвечает полям (свойствам) модели, улуачшает контроль за ошибками.
+    Более того, этот атрибут автоматически генерирует id и name для элемента,
+    а также подбирает тип input согласно типу данных поля модели.
+    Плюс, для полей, которые не передают отдельное значение, например,
+    checkbox, создаются скрытые поля для передачи значения по-умолчанию.
+</p>
+<p>
+    Методы контроллеров могут получать эти формы и сразу переносить их
+    в объекты-модели (точнее, создавать объекты и заполнять их поля).
+    Связывание совершается по совпадению имен в классе-модели и параметрах запроса.
+    Это повышает важность правильного устанавления имен полей формы,
+    то есть, рекоммендуется испольовать asp-for
+</p>
+
+<h2>Про формы HTML</h2>
+<p>
+    Формы - это способ HTML/браузера для отправки данных. Можно сказать, что
+    форма - это расширения понятие "ссылки", которая не только переходит
+    по новому адрессу, а еще и передают определенные данные. Аналогично с ссылками,
+    отправления формы (переход по ссылке) разрушает страницу, и новая собирается
+    по ответу сервера.
+</p>
+
+<p>
+    Как форма передает данные? <br />
+    Особенности передачи данных устанавливаются атрибутами тега &lt;form>: <br />
+    <b>method</b> - get (default) | post <br />
+    <b>enctype</b> - application/x-www-form-urlencoded (default) | multipart/form-data <br />
+    application/x-www-form-urlencoded == name1=val1&name2=val2&...<br />
+    multipart/form-data == сложно изобразить - используется для передачи файлов <br />
+</p>
+<hr />
+<h2>Передача файлов</h2>
+<p>
+    Со стороны HTML: в форме должно быть поле типа "file" и enctype формы
+    обязательно должен иметь значение "multipart/form-data"
+</p>

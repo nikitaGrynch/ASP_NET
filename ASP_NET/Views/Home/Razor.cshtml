@@ -1,0 +1,82 @@
+@using System.Data
+@{
+    ViewData["title"] = "Razor";
+    Random rnd = new();
+}
+
+<div class="text-center" xmlns="http://www.w3.org/1999/html">
+    <h1 class="display-4">Razor Basics</h1>
+</div>
+<p>
+    C# Code - &#64; { C# code }
+</p>
+@{
+    int x = rnd.Next(1, 20);
+    string str = "The string";
+}
+<p>
+    Expressions (выражение) - совокупность операторов и операндов, которые возвращают результат определенного типа.
+    Неявный (implicit) - <b>&#64;expression</b>
+    <br/>Например: <b>&#64;x = @x</b>
+</p>
+<p>
+    Условная верстка: &commat;if, &commat;switch
+    В блоках этих операторов можно использовать как инструкции C#, так и разметку
+    За разметку считается то, что в тегах. Остальное - инструкции.
+    Если нужно указать, что разметка будет без тегов, то следует добавить
+    префикс &commat;:
+</p>
+<p>
+    @if (x < 10)
+    {
+        int y = 20;
+        <b>Этот блок будет сверстан если x &lt; 10</b>
+        y++;
+        <i>При этом y = @y </i>
+        @: конец блока
+    }
+    else
+    {
+        int y = 30;
+        <b>Этот блок будет сверстан если x &ge; 10</b>
+        <i>При этом y = @y </i>
+        @: конец блока
+    }
+</p>
+<p>
+    @switch (x)
+    {
+        case 1:
+            <i> case x = 1 </i>
+            break;
+        case 10:
+            <i> case x = 10 </i>
+            break;
+        default:
+            <i> default: x neither 1 nor 10</i>
+            break;
+    }
+</p>
+
+<p>
+    Цикловые операторы &commat;for, &commat;foreach, и тд. <br />
+    то же самое - возможность смешивания кода и разметки
+</p>
+<div>
+    @for (int i = 0; i < @x; i++)
+    {
+        <p>
+            @(i + 1). Позиция с i = @i
+        </p>
+    }
+</div>
+@{
+    int[] arr = { 9, 7, 5, 3, 1 };
+}
+<ul>
+@foreach (int item in arr)
+{
+    String txt = $"item value = {item}";
+    <li>@txt</li>
+}
+</ul>

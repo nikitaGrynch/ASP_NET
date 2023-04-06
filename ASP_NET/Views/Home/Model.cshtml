@@ -1,0 +1,76 @@
+@using ASP_NET.Models.Home
+@model ASP_NET.Models.Home.Model
+@{
+    ViewData["Title"] = @Model.Header;
+}
+
+<div class="text-center">
+    <h1 class="display-4">@Model.Title</h1>
+</div>
+
+<p>
+    В ASP.NET понятие модели немного отличается от классического
+    в паттерне MVC - это класс, объект которого передается от контроллера
+    представлению - что-то похожее на интерфейс передачи данных
+</p>
+
+<p>
+    В папке Models добавляем папку с названием контроллера (Home) <br />
+    В начале .cshtml указываем тип модели оператором &commat;model<br />
+    В контроллере при вызове View объявляем объект модели: <br />
+    Дальше в коде переданый объект, доступный за ключевым словом Model
+    (для произвольного класса моделей)
+</p>
+
+<ul>
+    @foreach (var dep in Model.Departments)
+    {
+        <li>
+            @dep
+        </li>
+    }
+</ul>
+
+// HW
+<table class="products">
+    <tr>
+        <th>№</th>
+        <th>Name</th>
+        <th>Price</th>
+    </tr>
+    @for (int i = 1; i <= Model.Products.Count; i++)
+    {
+        <tr>
+            <td>@i</td>
+            <td>@Model.Products[i-1].Name</td>
+            <td>@Model.Products[i-1].Price.ToString("0.00")</td>
+        </tr>
+    }
+</table>
+
+<h2>Шаблоны отображения</h2>
+<p>
+    Отделения моделей, а также других промежуточных типов (к примеру, Product)
+    вызывает вопрос унификации их отображения. Для этого создаются
+    шаблоны отображения (display templates)
+</p>
+<p>
+    Шаблоны могут автоматически связываться за сходством типа данных
+    или за имменем шаблона. Шаблоны отображения создаются в 
+    дополнительной папке DisplayTemplates в папках Views/[Controller]
+</p>
+
+@Html.DisplayFor(m => m.Products[0])
+
+<p>
+    Шаблон подключается с помощью 
+    <code>&commat;Html.DisplayFor(m => m.Products[0]).</code>
+    Поиск шаблона должен происходить по названию типа: 
+    <code>m.Products[0]</code> имеет тип <code>Product</code>
+    соответсвенно в DisplayTemplates будет искаться файл Product.cshtml.
+    Если название типа сложное (например, коллекция) или есть проблемы с автоматическим
+    поиском, то название наблона можно указать другим параметром, вызвав
+    <code>&commat;Html.DisplayFor(m => m.Products[0], "Product")</code>
+</p>
+
+@Html.DisplayFor(m => m.Products, "Products")
