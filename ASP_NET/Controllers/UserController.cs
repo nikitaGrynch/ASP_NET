@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ASP_NET.Models.User;
+using ASP_NET.Services.Hash;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASP_NET.Controllers
@@ -11,6 +12,15 @@ namespace ASP_NET.Controllers
     // [Route("Users")]
     public class UserController : Controller
     {
+        private readonly IHashService _hashService;
+        private readonly ILogger<UserController> _logger;
+
+        public UserController(IHashService hashService, ILogger<UserController> logger)
+        {
+            _hashService = hashService;
+            _logger = logger;
+        }
+
         public IActionResult Index()
         {
             return View();
@@ -116,13 +126,34 @@ namespace ASP_NET.Controllers
                 }
                 else
                 {
-                    string path = "wwwroot/avatars/" + userRegistrationModel.Avatar.FileName;
-                    using (var fileStream = new FileStream(
-                               path,
-                               FileMode.Create))
-                    {
-                        userRegistrationModel.Avatar.CopyTo(fileStream);
+                    String ext = Path.GetExtension((userRegistrationModel.Avatar.FileName));
+                    String hash = _hashService.Hash((userRegistrationModel.Avatar.FileName + Guid.NewGuid()))[..16];
+                    string path = "wwwroot/avatars/" + hash + ext;
 
+                    // check if the file with this name already exists
+                    DirectoryInfo dir = new(path);
+                    FileInfo[] files = dir.GetFiles();
+                    bool isWrongFile = false;
+                    foreach (var file in files)
+                    {
+                        if (file.Name.Equals(hash))
+                        {
+                            validationResult.AvatarMessage = "Something was wrong. Try again, please";
+                            isModelValid = false;
+                            isWrongFile = false;
+                            break;
+                        }
+                    }
+
+                    if (!isWrongFile)
+                    {
+                        using (var fileStream = new FileStream(
+                                   path,
+                                   FileMode.Create))
+                        {
+                            userRegistrationModel.Avatar.CopyTo(fileStream);
+
+                        }
                     }
                 }
             }

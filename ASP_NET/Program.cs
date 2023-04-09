@@ -1,4 +1,13 @@
+using ASP_NET.Services;
+using ASP_NET.Services.Hash;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSingleton<TimeService>();
+builder.Services.AddTransient<DateService>();
+builder.Services.AddScoped<DtService>();
+
+builder.Services.AddSingleton<IHashService, Md5HashService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
