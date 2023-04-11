@@ -1,5 +1,9 @@
+using ASP_NET.Data;
 using ASP_NET.Services;
 using ASP_NET.Services.Hash;
+using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
+using Pomelo.EntityFrameworkCore.MySql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +12,15 @@ builder.Services.AddTransient<DateService>();
 builder.Services.AddScoped<DtService>();
 
 builder.Services.AddSingleton<IHashService, Md5HashService>();
+
+String? connectionString = builder.Configuration.GetConnectionString("MainDb");
+MySqlConnection connection = new(connectionString);
+builder.Services.AddDbContext<DataContext>(options =>
+    options.UseMySql(
+        connection,
+        ServerVersion.AutoDetect(connection)
+    )
+);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

@@ -1,0 +1,42 @@
+@{
+    ViewData["Title"] = "Intro";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Создание контекста данных</h1>
+</div>
+<p>
+    Строка подключения: размещаем в файле "appsettings.json" дополнительную секцию<br />
+    <code>
+        "ConnectionStrings": {
+        "MainDb": "Server=aws.connect.psdb.cloud;Database=ado_net;user=jwhxidkoc9s81hi74mwa;password=************;SslMode=VerifyFull;"
+        }<br />
+    </code><br />
+    Замечание: база данных может не существовать, ее создаст EFCore.
+    Также можно указать подключение к уже существующей базе, в том числе удаленной
+    Также разрешается указать несколько строк подключения
+</p>
+<p>
+    В отличие от ADO проекты ASP руководствуются инвертором управления,
+    поэтому создание объектов делегируется этому модулю. Соответственно,
+    в контексте данных следует объявить конструктор с параметром<br />
+    <code>
+        public DataContext(DbContextOptions options) : base(options)<br />
+        {}<br />
+    </code>
+    Тело оставляем пустым<br /><br />
+</p>
+<p>
+    Используем команды построения и применение миграций.
+    Или через PM-консоль, или через терминал (пример с терминала):<br />
+    dotnet tool install --global dotnet-ef<br />
+    dotnet ef migrations add Initial<br />
+    dotnet ef database update
+</p>
+<p>
+    Дальше инжектируем контекст данных (по типу DataContext)
+    в необходимые точки
+</p>
+<p>
+    Количество пользователей в БД: @ViewData["UsersCount"]
+</p>

@@ -13,4 +13,7 @@
 <p>
     Welcome to our website. Use your credentials to sign in.
 </p>
-<img src="/avatars/@(Model.Avatar.FileName)" alt="ava" />
+@if (Model.Avatar is not null)
+{
+    <img src="/avatars/@(Model.Avatar.FileName)" alt="ava"/>
+}

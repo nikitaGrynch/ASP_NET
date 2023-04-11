@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using ASP_NET.Data;
+using ASP_NET.Data.Entity;
 using ASP_NET.Models.User;
 using ASP_NET.Services.Hash;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +16,13 @@ namespace ASP_NET.Controllers
     {
         private readonly IHashService _hashService;
         private readonly ILogger<UserController> _logger;
+        private readonly DataContext _dataContext;
 
-        public UserController(IHashService hashService, ILogger<UserController> logger)
+        public UserController(IHashService hashService, ILogger<UserController> logger, DataContext dataContext)
         {
             _hashService = hashService;
             _logger = logger;
+            _dataContext = dataContext;
         }
 
         public IActionResult Index()
@@ -117,6 +121,8 @@ namespace ASP_NET.Controllers
 
             #region Avatar Uploading
 
+            string? avatarFilename = null; 
+
             if (userRegistrationModel.Avatar is not null)
             {
                 if (userRegistrationModel.Avatar.Length <= 1000)
@@ -129,21 +135,11 @@ namespace ASP_NET.Controllers
                     String ext = Path.GetExtension((userRegistrationModel.Avatar.FileName));
                     String hash = _hashService.Hash((userRegistrationModel.Avatar.FileName + Guid.NewGuid()))[..16];
                     string path = "wwwroot/avatars/" + hash + ext;
+                    avatarFilename = hash + ext;
 
                     // check if the file with this name already exists
-                    DirectoryInfo dir = new(path);
-                    FileInfo[] files = dir.GetFiles();
-                    bool isWrongFile = false;
-                    foreach (var file in files)
-                    {
-                        if (file.Name.Equals(hash))
-                        {
-                            validationResult.AvatarMessage = "Something was wrong. Try again, please";
-                            isModelValid = false;
-                            isWrongFile = false;
-                            break;
-                        }
-                    }
+                    bool isWrongFile = System.IO.File.Exists(path);
+                    
 
                     if (!isWrongFile)
                     {
@@ -162,6 +158,23 @@ namespace ASP_NET.Controllers
 
             if (isModelValid)
             {
+                String passSault = _hashService.Hash(Guid.NewGuid().ToString());
+                string emailCode = Guid.NewGuid().ToString()[..6];
+                User user = new()
+                {
+                    Id = Guid.NewGuid(),
+                    Login = userRegistrationModel.Login,
+                    PasswordSalt = passSault,
+                    PasswordHash = _hashService.Hash(passSault + userRegistrationModel.Password),
+                    Avatar = avatarFilename,
+                    Email = userRegistrationModel.Email,
+                    RealName = userRegistrationModel.RealName,
+                    RegisterDt = DateTime.Now,
+                    LastEnterDt = null,
+                    EmailCode = emailCode
+                };
+                _dataContext.Users.Add(user);
+                _dataContext.SaveChanges();
                 return View(userRegistrationModel);
             }
             else

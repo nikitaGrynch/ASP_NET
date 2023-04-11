@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using ASP_NET.Data;
 using Microsoft.AspNetCore.Mvc;
 using ASP_NET.Models;
 using ASP_NET.Services;
@@ -13,14 +14,16 @@ public class HomeController : Controller
     private readonly DateService _dateService;
     private readonly DtService _dtService;
     private readonly IHashService _hashService;
+    private readonly DataContext _dataContext;
 
-    public HomeController(ILogger<HomeController> logger, TimeService timeService, DateService dateService, DtService dtService, IHashService hashService)
+    public HomeController(ILogger<HomeController> logger, TimeService timeService, DateService dateService, DtService dtService, IHashService hashService, DataContext dataContext)
     {
         _logger = logger;
         _timeService = timeService;
         _dateService = dateService;
         _dtService = dtService;
         _hashService = hashService;
+        _dataContext = dataContext;
     }
 
     public IActionResult Index()
@@ -88,6 +91,13 @@ public class HomeController : Controller
 
         return View();
     }
+
+    public ViewResult Context()
+    {
+        ViewData["UsersCount"] = _dataContext.Users.Count();
+        return View();
+    }
+
     public IActionResult Privacy()
     {
         return View();
