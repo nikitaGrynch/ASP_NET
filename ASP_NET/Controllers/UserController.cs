@@ -7,6 +7,8 @@ using ASP_NET.Data;
 using ASP_NET.Data.Entity;
 using ASP_NET.Models.User;
 using ASP_NET.Services.Hash;
+using ASP_NET.Services.Kdf;
+using ASP_NET.Services.Random;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASP_NET.Controllers
@@ -17,12 +19,16 @@ namespace ASP_NET.Controllers
         private readonly IHashService _hashService;
         private readonly ILogger<UserController> _logger;
         private readonly DataContext _dataContext;
+        private readonly IRandomService _randomService;
+        private readonly IKdfService _kdfService;
 
-        public UserController(IHashService hashService, ILogger<UserController> logger, DataContext dataContext)
+        public UserController(IHashService hashService, ILogger<UserController> logger, DataContext dataContext, IRandomService randomService, IKdfService kdfService)
         {
             _hashService = hashService;
             _logger = logger;
             _dataContext = dataContext;
+            _randomService = randomService;
+            _kdfService = kdfService;
         }
 
         public IActionResult Index()
@@ -133,13 +139,14 @@ namespace ASP_NET.Controllers
                 else
                 {
                     String ext = Path.GetExtension((userRegistrationModel.Avatar.FileName));
-                    String hash = _hashService.Hash((userRegistrationModel.Avatar.FileName + Guid.NewGuid()))[..16];
-                    string path = "wwwroot/avatars/" + hash + ext;
-                    avatarFilename = hash + ext;
+                    String name = _randomService.RandomFileName(16);
+                    avatarFilename = name + ext;
+                    string path = "wwwroot/avatars/" + avatarFilename;
+                    
 
                     // check if the file with this name already exists
                     bool isWrongFile = System.IO.File.Exists(path);
-                    
+                    ViewData["avatarFilename"] = avatarFilename;
 
                     if (!isWrongFile)
                     {
@@ -158,20 +165,19 @@ namespace ASP_NET.Controllers
 
             if (isModelValid)
             {
-                String passSault = _hashService.Hash(Guid.NewGuid().ToString());
-                string emailCode = Guid.NewGuid().ToString()[..6];
+                String passSault = _randomService.RandomString(8);
                 User user = new()
                 {
                     Id = Guid.NewGuid(),
                     Login = userRegistrationModel.Login,
                     PasswordSalt = passSault,
-                    PasswordHash = _hashService.Hash(passSault + userRegistrationModel.Password),
+                    PasswordHash = _kdfService.GetDerivedKey(userRegistrationModel.Password, passSault),
                     Avatar = avatarFilename,
                     Email = userRegistrationModel.Email,
                     RealName = userRegistrationModel.RealName,
                     RegisterDt = DateTime.Now,
                     LastEnterDt = null,
-                    EmailCode = emailCode
+                    EmailCode = _randomService.ConfirmCode(6)
                 };
                 _dataContext.Users.Add(user);
                 _dataContext.SaveChanges();

@@ -1,6 +1,8 @@
 using ASP_NET.Data;
 using ASP_NET.Services;
 using ASP_NET.Services.Hash;
+using ASP_NET.Services.Kdf;
+using ASP_NET.Services.Random;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using Pomelo.EntityFrameworkCore.MySql;
@@ -12,6 +14,8 @@ builder.Services.AddTransient<DateService>();
 builder.Services.AddScoped<DtService>();
 
 builder.Services.AddSingleton<IHashService, Md5HashService>();
+builder.Services.AddSingleton<IRandomService, RandomServiceV1>();
+builder.Services.AddSingleton<IKdfService, HashKdfService>();
 
 String? connectionString = builder.Configuration.GetConnectionString("MainDb");
 MySqlConnection connection = new(connectionString);
