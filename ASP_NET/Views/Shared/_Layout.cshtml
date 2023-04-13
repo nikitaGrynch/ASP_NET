@@ -28,12 +28,21 @@
                 </ul>
             </div>
         </div>
-        <!-- Button trigger modal -->
-        <button title="Log In" type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#authModal">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-right" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M6 3.5a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 0-1 0v2A1.5 1.5 0 0 0 6.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-8A1.5 1.5 0 0 0 5 3.5v2a.5.5 0 0 0 1 0v-2z"/><path fill-rule="evenodd" d="M11.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H1.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
-            </svg>
-        </button>
+        @if (ViewData["authUser"] is null)
+        {
+            <!-- Button trigger modal -->
+            <button title="Log In" type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#authModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M6 3.5a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 0-1 0v2A1.5 1.5 0 0 0 6.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-8A1.5 1.5 0 0 0 5 3.5v2a.5.5 0 0 0 1 0v-2z"/><path fill-rule="evenodd" d="M11.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H1.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                </svg>
+            </button>
+        }
+        else
+        {
+            <span>
+                @ViewData["authUser"]
+            </span>
+        }
     </nav>
 </header>
 <div class="container">
@@ -46,26 +55,44 @@
 <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form>
+            <form asp-controller="User" asp-action="AuthUser" method="post">
                 <div class="modal-header">
                     <h5 class="modal-title" id="authModalLabel">Authentication</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                      <div class="form-group">
-                            <label for="user-login">Login</label>
-                            <input type="text" id="user-login" name="user-login" class="form-control " placeholder="Enter a login">
-                      </div>
-                        <div class="form-group">
-                            <label for="password">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter a Password">
-                        </div>
+                    <div class="form-group">
+                        <label for="user-login">Login</label>
+                        <input type="text" id="user-login" name="user-login" class="form-control " placeholder="Enter a login">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-password">Password</label>
+                        <input type="password" class="form-control" id="user-password" name="user-password" placeholder="Enter a Password">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Log In</button>
+                    <button type="button" class="btn btn-primary" id="login-button">Log In</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Auth Rejected Modal -->
+<div class="modal fade" id="authRejectedModal" tabindex="-1" aria-labelledby="authRejectedLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="authRejectedLabel">Authentication Rejected</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Invalid login or password</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
         </div>
     </div>
 </div>
@@ -75,6 +102,38 @@
         &copy; 2023 - ASP_NET - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
     </div>
 </footer>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+            const loginButton = document.getElementById("login-button");
+            if (!loginButton) throw "login-button not found" ;
+            loginButton.addEventListener("click", loginButtonClick);
+        });
+        function loginButtonClick() {
+            const userLoginInput = document.getElementById("user-login");
+            if (!userLoginInput) throw "user-login input not found" ;
+            const login = userLoginInput.value;
+            const userPasswordInput = document.getElementById("user-password");
+            if (!userPasswordInput) throw "user-password input not found" ;
+            const password = userPasswordInput.value;
+
+            window.fetch("/User/AuthUser", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `user-login=${login}&user-password=${password}`
+            })
+            .then(r => r.text())
+            .then(t => {
+                if (t === "OK") window.location.reload();
+                else {
+                    const modal = new bootstrap.Modal(document.getElementById('authRejectedModal'));
+                    modal.show(modal);
+                        
+                }
+            });
+        }
+</script>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>

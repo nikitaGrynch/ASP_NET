@@ -10,6 +10,7 @@ using ASP_NET.Services.Hash;
 using ASP_NET.Services.Kdf;
 using ASP_NET.Services.Random;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 
 namespace ASP_NET.Controllers
 {
@@ -190,6 +191,33 @@ namespace ASP_NET.Controllers
                 ViewData["userRegistrationModel"] = userRegistrationModel;
                 return View("Registration");
             }
+        }
+
+        [HttpPost]  // метод доступный только POST запросом
+        public String AuthUser()
+        {
+            var loginValues = Request.Form["user-login"];
+            if (loginValues.Count == 0)
+            {
+                return "No login data";
+            }
+            String login = loginValues[0] ?? "";
+            var passwordValues = Request.Form["user-password"];
+            if (passwordValues.Count == 0)
+            {
+                return "No password data";
+            }
+            String password = passwordValues[0] ?? "";
+            User? user = _dataContext.Users.FirstOrDefault(u => u.Login == login);
+            if (user is not null)
+            {
+                if (user.PasswordHash == _kdfService.GetDerivedKey(password, user.PasswordSalt))
+                {
+                    HttpContext.Session.SetString("uathUserId", user.Id.ToString());
+                    return $"OK";
+                }
+            }
+            return $"REJECTED";
         }
     }
 }

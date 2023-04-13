@@ -17,6 +17,18 @@ builder.Services.AddSingleton<IHashService, Md5HashService>();
 builder.Services.AddSingleton<IRandomService, RandomServiceV1>();
 builder.Services.AddSingleton<IKdfService, HashKdfService>();
 
+// Конфигурация НТТР-сессий
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(1);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+
+
+
 String? connectionString = builder.Configuration.GetConnectionString("MainDb");
 MySqlConnection connection = new(connectionString);
 builder.Services.AddDbContext<DataContext>(options =>
@@ -45,6 +57,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.UseSession();
 
 app.MapControllerRoute(
     name: "default",

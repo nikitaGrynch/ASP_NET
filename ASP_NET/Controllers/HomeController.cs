@@ -28,6 +28,7 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
+        ViewData["authUser"] = HttpContext.Session.GetString("uathUserId");
         return View();
     }
     
@@ -95,6 +96,18 @@ public class HomeController : Controller
     public ViewResult Context()
     {
         ViewData["UsersCount"] = _dataContext.Users.Count();
+        return View();
+    }
+
+    public IActionResult Sessions(String? number)
+    {
+        _logger.LogInformation("number: " + number);
+        if (number is not null)
+        {
+            HttpContext.Session.SetString("number", number);
+        }
+
+        ViewData["number"] = HttpContext.Session.GetString("number");
         return View();
     }
 
