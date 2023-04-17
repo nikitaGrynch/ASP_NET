@@ -1,4 +1,5 @@
 using ASP_NET.Data;
+using ASP_NET.Middleware;
 using ASP_NET.Services;
 using ASP_NET.Services.Hash;
 using ASP_NET.Services.Kdf;
@@ -58,7 +59,11 @@ app.UseRouting();
 
 app.UseAuthorization();
 
+// Включение HTTP - сессий
 app.UseSession();
+
+// Подключаем собственные Middleware
+app.UseMiddleware<SessionAuthMiddleware>();
 
 app.MapControllerRoute(
     name: "default",

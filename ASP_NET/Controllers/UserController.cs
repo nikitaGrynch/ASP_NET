@@ -213,11 +213,26 @@ namespace ASP_NET.Controllers
             {
                 if (user.PasswordHash == _kdfService.GetDerivedKey(password, user.PasswordSalt))
                 {
-                    HttpContext.Session.SetString("uathUserId", user.Id.ToString());
-                    return $"OK";
+                    HttpContext.Session.SetString("authUserId", user.Id.ToString());
+                    return "OK";
                 }
             }
-            return $"REJECTED";
+            return "REJECTED";
+        }
+
+        public IActionResult Logout()
+        {
+            if (HttpContext.Items.Keys.Contains("authUser"))
+            {
+                HttpContext.Items.Remove("authUser");
+            }
+
+            if (HttpContext.Session.Keys.Contains("authUserId"))
+            {
+                HttpContext.Session.Remove("authUserId");
+            }
+
+            return RedirectToAction("Index", "Home");
         }
     }
 }

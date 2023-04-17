@@ -25,10 +25,14 @@ public class HomeController : Controller
         _hashService = hashService;
         _dataContext = dataContext;
     }
+    
+    public IActionResult Middleware()
+    {
+        return View();
+    }
 
     public IActionResult Index()
     {
-        ViewData["authUser"] = HttpContext.Session.GetString("uathUserId");
         return View();
     }
     

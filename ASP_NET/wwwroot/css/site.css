@@ -36,3 +36,7 @@ table, th, td {
 img{
   height: 150px;
 }
+
+header{
+  margin-right: 10px;
+}
