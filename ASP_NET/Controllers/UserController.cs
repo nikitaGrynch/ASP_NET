@@ -57,6 +57,12 @@ namespace ASP_NET.Controllers
                 validationResult.LoginMessage = "Login can not be empty";
                 isModelValid = false;
             }
+
+            if (_dataContext.Users.Any(u => u.Login.ToLower() == userRegistrationModel.Login.ToLower()))
+            {
+                validationResult.LoginMessage = $"Login '{userRegistrationModel.Login}' is already in use";
+                isModelValid = false;
+            }
             #endregion
             #region Password / Repeat Validation
             if (String.IsNullOrEmpty(userRegistrationModel.Password))
@@ -233,6 +239,30 @@ namespace ASP_NET.Controllers
             }
 
             return RedirectToAction("Index", "Home");
+        }
+
+        public IActionResult Profile([FromRoute] String id)
+        {
+            //_logger.LogInformation(id);
+            Data.Entity.User? user = _dataContext.Users.FirstOrDefault(u => u.Login == id);
+            if (user is not null)
+            {
+                Models.User.ProfileModel model = new(user);
+                if (String.IsNullOrEmpty(model.Avatar))
+                {
+                    model.Avatar = "no-avatar.png";
+                }
+                return View(model);
+            }
+            else
+            {
+                return NotFound();
+            }
+            // if (user is not null)
+            // {
+            //     ViewData["avatar"] = user.Avatar is null ? "no-avatar.png" : user.Avatar;
+            // }
+            // return View();
         }
     }
 }

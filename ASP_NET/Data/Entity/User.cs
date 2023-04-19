@@ -12,4 +12,10 @@ public class User
     public string? Avatar { get; set; } = null!;
     public DateTime RegisterDt { get; set; }
     public DateTime? LastEnterDt { get; set; }
+
+    public Boolean IsEmailPublic { get; set; } = false;
+    public Boolean IsRealNamePublic { get; set; } = false;
+    public Boolean IsDatesPublic { get; set; } = false;
+
+
 }

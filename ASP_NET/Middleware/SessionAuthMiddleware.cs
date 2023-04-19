@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ASP_NET.Data;
 using ASP_NET.Data.Entity;
 
@@ -32,6 +33,16 @@ public class SessionAuthMiddleware
                 {
                     // save
                     context.Items.Add("authUser", user);
+                    Claim[] claims = new Claim[]
+                    {
+                        new Claim(ClaimTypes.Sid, userId),
+                        new Claim(ClaimTypes.Name, user.RealName),
+                        new Claim(ClaimTypes.NameIdentifier, user.Login),
+                        new Claim(ClaimTypes.UserData, user.Avatar ?? String.Empty)
+                    };
+                    var principal = new ClaimsPrincipal(
+                        new ClaimsIdentity(claims, nameof(SessionAuthMiddleware)));
+                    context.User = principal;
                 }
             }
             catch(Exception ex)
