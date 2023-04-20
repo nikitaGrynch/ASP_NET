@@ -13,6 +13,10 @@ public class ProfileModel
     public Boolean IsEmailPublic { get; set; }
     public Boolean IsRealNamePublic { get; set; }
     public Boolean IsDatesPublic { get; set; }
+    /// <summary>
+    /// Does the profile belongs to authorized user?
+    /// </summary>
+    public Boolean IsPersonal { get; set; } = false;
 
     public ProfileModel(Data.Entity.User user)
     {

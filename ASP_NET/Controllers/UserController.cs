@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ASP_NET.Data;
@@ -252,17 +253,21 @@ namespace ASP_NET.Controllers
                 {
                     model.Avatar = "no-avatar.png";
                 }
+                // check, is user is authorized and login belongs to them
+                String userLogin =
+                    HttpContext.User.Claims
+                        .First(claim => claim.Type == ClaimTypes.NameIdentifier)
+                        .Value;
+                if (model.Login == userLogin)
+                {
+                    model.IsPersonal = true;
+                }
                 return View(model);
             }
             else
             {
                 return NotFound();
             }
-            // if (user is not null)
-            // {
-            //     ViewData["avatar"] = user.Avatar is null ? "no-avatar.png" : user.Avatar;
-            // }
-            // return View();
         }
     }
 }
