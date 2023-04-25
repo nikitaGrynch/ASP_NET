@@ -15,8 +15,10 @@ public class HomeController : Controller
     private readonly DtService _dtService;
     private readonly IHashService _hashService;
     private readonly DataContext _dataContext;
+    private readonly IConfiguration _configuration;
 
-    public HomeController(ILogger<HomeController> logger, TimeService timeService, DateService dateService, DtService dtService, IHashService hashService, DataContext dataContext)
+
+    public HomeController(ILogger<HomeController> logger, TimeService timeService, DateService dateService, DtService dtService, IHashService hashService, DataContext dataContext, IConfiguration configuration)
     {
         _logger = logger;
         _timeService = timeService;
@@ -24,6 +26,16 @@ public class HomeController : Controller
         _dtService = dtService;
         _hashService = hashService;
         _dataContext = dataContext;
+        _configuration = configuration;
+    }
+    
+    public IActionResult EmailConfirmation()
+    {
+        ViewData["config_host"] = _configuration["Smtp:Gmail:Host"];
+        ViewData["config_port"] = _configuration["Smtp:Gmail:Port"];
+        ViewData["config_email"] = _configuration["Smtp:Gmail:Email"];
+        ViewData["config_ssl"] = _configuration["Smtp:Gmail:Ssl"];
+        return View();
     }
     
     public IActionResult Middleware()

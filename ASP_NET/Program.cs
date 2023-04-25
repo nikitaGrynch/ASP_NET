@@ -4,6 +4,7 @@ using ASP_NET.Services;
 using ASP_NET.Services.Hash;
 using ASP_NET.Services.Kdf;
 using ASP_NET.Services.Random;
+using ASP_NET.Services.Validation;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using Pomelo.EntityFrameworkCore.MySql;
@@ -17,6 +18,7 @@ builder.Services.AddScoped<DtService>();
 builder.Services.AddSingleton<IHashService, Md5HashService>();
 builder.Services.AddSingleton<IRandomService, RandomServiceV1>();
 builder.Services.AddSingleton<IKdfService, HashKdfService>();
+builder.Services.AddSingleton<IValidationService, ValidationServiceV1>();
 
 // Конфигурация НТТР-сессий
 builder.Services.AddDistributedMemoryCache();

@@ -10,6 +10,7 @@ using ASP_NET.Models.User;
 using ASP_NET.Services.Hash;
 using ASP_NET.Services.Kdf;
 using ASP_NET.Services.Random;
+using ASP_NET.Services.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 
@@ -23,14 +24,19 @@ namespace ASP_NET.Controllers
         private readonly DataContext _dataContext;
         private readonly IRandomService _randomService;
         private readonly IKdfService _kdfService;
+        private readonly IValidationService _validationService;
+        private readonly IConfiguration _configuration;
 
-        public UserController(IHashService hashService, ILogger<UserController> logger, DataContext dataContext, IRandomService randomService, IKdfService kdfService)
+        public UserController(IHashService hashService, ILogger<UserController> logger, DataContext dataContext,
+            IRandomService randomService, IKdfService kdfService, IValidationService validationService, IConfiguration configuration)
         {
             _hashService = hashService;
             _logger = logger;
             _dataContext = dataContext;
             _randomService = randomService;
             _kdfService = kdfService;
+            _validationService = validationService;
+            _configuration = configuration;
         }
 
         public IActionResult Index()
@@ -42,10 +48,12 @@ namespace ASP_NET.Controllers
         {
             return View();
         }
+
         public IActionResult Registration_HW()
         {
             return View();
         }
+
         public IActionResult RegisterUser(UserRegistrationModel userRegistrationModel)
         {
             UserValidationModel validationResult = new();
@@ -53,7 +61,8 @@ namespace ASP_NET.Controllers
             byte minPasswordLength = 3;
 
             #region Login Validation
-            if (String.IsNullOrEmpty(userRegistrationModel.Login))
+
+            if (!_validationService.Validate(userRegistrationModel.Login, ValidationTerms.Login))
             {
                 validationResult.LoginMessage = "Login can not be empty";
                 isModelValid = false;
@@ -64,62 +73,56 @@ namespace ASP_NET.Controllers
                 validationResult.LoginMessage = $"Login '{userRegistrationModel.Login}' is already in use";
                 isModelValid = false;
             }
+
             #endregion
+
             #region Password / Repeat Validation
-            if (String.IsNullOrEmpty(userRegistrationModel.Password))
+
+            if (!_validationService.Validate(userRegistrationModel.Password, ValidationTerms.NotEmpty))
             {
                 validationResult.PasswordMessage = "Password can not be empty";
                 isModelValid = false;
             }
-            else
+            else if (_validationService.Validate(userRegistrationModel.Password, ValidationTerms.Password))
             {
-                if (userRegistrationModel.Password.Length < minPasswordLength)
-                {
-                    validationResult.PasswordMessage = $"Password length must be at least {minPasswordLength} characters";
-                    isModelValid = false;
-                }
-
-                if (!userRegistrationModel.Password.Equals(userRegistrationModel.RepeatPassword))
-                {
-                    validationResult.RepeatPasswordMessage = "Passwords must be equal";
-                    isModelValid = false;
-                }
+                validationResult.PasswordMessage =
+                    $"Password length must be at least 3 characters";
+                isModelValid = false;
             }
+            else if (!userRegistrationModel.Password.Equals(userRegistrationModel.RepeatPassword))
+            {
+                validationResult.RepeatPasswordMessage = "Passwords must be equal";
+                isModelValid = false;
+            }
+
             #endregion
 
             #region Email Validation
-            if (String.IsNullOrEmpty(userRegistrationModel.Email))
+
+            if (!_validationService.Validate(userRegistrationModel.Email, ValidationTerms.NotEmpty))
             {
                 validationResult.EmailMessage = "Email can not be empty";
                 isModelValid = false;
             }
-            else
+            else if(!_validationService.Validate(userRegistrationModel.Email, ValidationTerms.Email))
             {
-                String emailRegex = @"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,})+)$";
-                if (!Regex.IsMatch(userRegistrationModel.Email, emailRegex, RegexOptions.IgnoreCase))
-                {
-                    validationResult.EmailMessage = "Email is incorrect";
-                    isModelValid = false;
-                }
+                validationResult.EmailMessage = "Email is incorrect";
+                isModelValid = false;
             }
 
             #endregion
 
             #region Real Name Validation
 
-            if (String.IsNullOrEmpty(userRegistrationModel.RealName))
+            if (!_validationService.Validate(userRegistrationModel.RealName, ValidationTerms.NotEmpty))
             {
                 validationResult.RealNameMessage = "Real name can not be empty";
                 isModelValid = false;
             }
-            else
-            {
-                String nameRegex = @"^.+$";
-                if (!Regex.IsMatch(userRegistrationModel.Email, nameRegex, RegexOptions.IgnoreCase))
-                {
-                    validationResult.RealNameMessage = "Real name is incorrect";
-                    isModelValid = false;
-                }
+            else if(_validationService.Validate(userRegistrationModel.RealName, ValidationTerms.RealName))
+            { 
+                validationResult.RealNameMessage = "Real name is incorrect";
+                isModelValid = false;
             }
 
             #endregion
@@ -135,7 +138,7 @@ namespace ASP_NET.Controllers
 
             #region Avatar Uploading
 
-            string? avatarFilename = null; 
+            string? avatarFilename = null;
 
             if (userRegistrationModel.Avatar is not null)
             {
@@ -150,7 +153,7 @@ namespace ASP_NET.Controllers
                     String name = _randomService.RandomFileName(16);
                     avatarFilename = name + ext;
                     string path = "wwwroot/avatars/" + avatarFilename;
-                    
+
 
                     // check if the file with this name already exists
                     bool isWrongFile = System.IO.File.Exists(path);
@@ -200,7 +203,7 @@ namespace ASP_NET.Controllers
             }
         }
 
-        [HttpPost]  // метод доступный только POST запросом
+        [HttpPost] // метод доступный только POST запросом
         public String AuthUser()
         {
             var loginValues = Request.Form["user-login"];
@@ -208,12 +211,14 @@ namespace ASP_NET.Controllers
             {
                 return "No login data";
             }
+
             String login = loginValues[0] ?? "";
             var passwordValues = Request.Form["user-password"];
             if (passwordValues.Count == 0)
             {
                 return "No password data";
             }
+
             String password = passwordValues[0] ?? "";
             User? user = _dataContext.Users.FirstOrDefault(u => u.Login == login);
             if (user is not null)
@@ -224,6 +229,7 @@ namespace ASP_NET.Controllers
                     return "OK";
                 }
             }
+
             return "REJECTED";
         }
 
@@ -253,6 +259,7 @@ namespace ASP_NET.Controllers
                 {
                     model.Avatar = "no-avatar.png";
                 }
+
                 // check, is user is authorized and login belongs to them
                 String userLogin =
                     HttpContext.User.Claims
@@ -262,11 +269,78 @@ namespace ASP_NET.Controllers
                 {
                     model.IsPersonal = true;
                 }
+
                 return View(model);
             }
             else
             {
                 return NotFound();
+            }
+        }
+
+        [HttpPut]
+        public JsonResult Update([FromBody] UserUpdateModel model)
+        {
+            if (model is null)
+            {
+                return Json(new
+                {
+                    status = "Error", data = "No or invalid data"
+                });
+            }
+
+            if (HttpContext.User.Identity?.IsAuthenticated != true)
+            {
+                return Json(new
+                {
+                    status = "Error", data = "Unauthenticated"
+                });
+            }
+
+            User? user = null;
+            try
+            {
+                user = _dataContext.Users
+                    .Find(Guid.Parse(
+                        HttpContext.User.Claims
+                        .First((claim) => claim.Type == ClaimTypes.Sid).Value
+                    ));
+            }
+            catch { }
+
+            if (user is null)
+            {
+                return Json(new
+                {
+                    status = "Error", data = "Unauthorized"
+                });
+            }
+            switch (model.Field)
+            {
+                case "realname":
+                {
+                    if (!_validationService.Validate(model.Value, ValidationTerms.RealName))
+                    {
+                        return Json(new
+                        {
+                            status = "Error",
+                            data = $"Validation failes for field '{model.Field}', value = '{model.Value}'"
+                        });
+                    }
+                    user.RealName = model.Value;
+                    _dataContext.SaveChanges();
+                    return Json(new
+                    {
+                        status = "OK", data = $"Name changed to {user.RealName}"
+                    });
+                }
+                default:
+                {
+                    return Json(new
+                    {
+                        status = "Error", data = $"Unknown field {model.Field}"
+                    });
+                }
             }
         }
     }

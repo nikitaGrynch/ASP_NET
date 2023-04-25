@@ -239,15 +239,16 @@
   });
   function editClick(e){
     const targetId = e.target.getAttribute("data-ref-field");
-    console.log(targetId);
+    // console.log(targetId);
+    e.target.oldSrc = e.target.src;
+    e.target.src = "../../imgs/icons/check-lg.svg";
+    e.target.removeEventListener("click", editClick);
     const editableTarget = document.getElementById(targetId);
-    console.log(editableTarget);
     editableTarget.setAttribute("contenteditable", "true");
-    const prevValue = editableTarget.innerText;
     editableTarget.focus();
-    e.target.setAttribute("src", "../../imgs/icons/check-lg.svg");
-    editableTarget.onblur = et => finishEditing(et, prevValue, e);
+    editableTarget.onblur = e => finishEditing(e);
     editableTarget.onkeydown = editableKeydown;
+    editableTarget.oldContent = editableTarget.innerText;
   }
   
   function editableKeydown(e){
@@ -258,17 +259,30 @@
     }
   }
   
-  function finishEditing(e, prevValue, eButton) {
+  function finishEditing(e) {
     const element = e.target;
-    if (element.innerText !== prevValue){
-      if (confirm("Save changes?")) {
+      if (typeof element.oldContent !== 'undefined'
+              && element.innerText !== element.oldContent 
+              && confirm("Save changes?")) {
         console.log("Sending: " + element.id + " = " + element.innerText);
+        window.fetch("/User/Update",
+        {
+          method: "PUT",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            field: element.id,
+            value: element.innerText
+          })
+        }).then(r => r.json()).then(console.log);
       }
       else{
-        element.innerText = prevValue;
+        element.innerText = element.oldContent;
       }
-    }
     element.removeAttribute("contenteditable");
-    eButton.target.setAttribute("src", "../../imgs/icons/pencil.svg");
+    const img = document.querySelector(`[data-ref-field=${element.id}]`);
+    img.src = img.oldSrc;
+    setTimeout(() => img.addEventListener("click", editClick), 200);
   }
 </script>
