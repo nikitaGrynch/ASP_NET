@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ASP_NET.Data;
 using ASP_NET.Data.Entity;
 using ASP_NET.Models.User;
+using ASP_NET.Services.Email;
 using ASP_NET.Services.Hash;
 using ASP_NET.Services.Kdf;
 using ASP_NET.Services.Random;
@@ -26,9 +27,10 @@ namespace ASP_NET.Controllers
         private readonly IKdfService _kdfService;
         private readonly IValidationService _validationService;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
         public UserController(IHashService hashService, ILogger<UserController> logger, DataContext dataContext,
-            IRandomService randomService, IKdfService kdfService, IValidationService validationService, IConfiguration configuration)
+            IRandomService randomService, IKdfService kdfService, IValidationService validationService, IConfiguration configuration, IEmailService emailService)
         {
             _hashService = hashService;
             _logger = logger;
@@ -37,6 +39,7 @@ namespace ASP_NET.Controllers
             _kdfService = kdfService;
             _validationService = validationService;
             _configuration = configuration;
+            _emailService = emailService;
         }
 
         public IActionResult Index()
@@ -62,13 +65,13 @@ namespace ASP_NET.Controllers
 
             #region Login Validation
 
-            if (!_validationService.Validate(userRegistrationModel.Login, ValidationTerms.Login))
+            if (!_validationService.Validate(userRegistrationModel.Login, ValidationTerms.NotEmpty))
             {
                 validationResult.LoginMessage = "Login can not be empty";
                 isModelValid = false;
             }
 
-            if (_dataContext.Users.Any(u => u.Login.ToLower() == userRegistrationModel.Login.ToLower()))
+            else if (_dataContext.Users.Any(u => u.Login.ToLower() == userRegistrationModel.Login.ToLower()))
             {
                 validationResult.LoginMessage = $"Login '{userRegistrationModel.Login}' is already in use";
                 isModelValid = false;
@@ -83,7 +86,7 @@ namespace ASP_NET.Controllers
                 validationResult.PasswordMessage = "Password can not be empty";
                 isModelValid = false;
             }
-            else if (_validationService.Validate(userRegistrationModel.Password, ValidationTerms.Password))
+            else if (!_validationService.Validate(userRegistrationModel.Password, ValidationTerms.Password))
             {
                 validationResult.PasswordMessage =
                     $"Password length must be at least 3 characters";
@@ -192,6 +195,23 @@ namespace ASP_NET.Controllers
                 };
                 _dataContext.Users.Add(user);
                 _dataContext.SaveChanges();
+                
+                // send email confirmation code
+                try
+                {
+                    _emailService.Send("confirm_email", new Models.Email.ConfirmEmailModel()
+                    {
+                        Email = user.Email,
+                        EmailCode = user.EmailCode,
+                        RealName = user.RealName,
+                        ConfirmUrl = "#"
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"_emailService error '{ex}'", ex.Message);
+                }
+                
                 return View(userRegistrationModel);
             }
             else
@@ -324,7 +344,7 @@ namespace ASP_NET.Controllers
                         return Json(new
                         {
                             status = "Error",
-                            data = $"Validation failes for field '{model.Field}', value = '{model.Value}'"
+                            data = $"Validation fails for field '{model.Field}', value = '{model.Value}'"
                         });
                     }
                     user.RealName = model.Value;
@@ -332,6 +352,23 @@ namespace ASP_NET.Controllers
                     return Json(new
                     {
                         status = "OK", data = $"Name changed to {user.RealName}"
+                    });
+                }
+                case "email":
+                {
+                    if (!_validationService.Validate(model.Value, ValidationTerms.Email))
+                    {
+                        return Json(new
+                        {
+                            status = "Error",
+                            data = $"Validation fails for field '{model.Field}', value = '{model.Value}'"
+                        });
+                    }
+                    user.Email = model.Value;
+                    _dataContext.SaveChanges();
+                    return Json(new
+                    {
+                        status = "OK", data = $"Email changed to {user.Email}"
                     });
                 }
                 default:

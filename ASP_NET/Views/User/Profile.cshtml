@@ -10,7 +10,7 @@
 <div class="container">
 <div class="main-body">
     
-<!-- Breadcrumb -->
+<!-- Breadcrumb
 <nav aria-label="breadcrumb" class="main-breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="index.html">Home</a></li>
@@ -18,7 +18,7 @@
     <li class="breadcrumb-item active" aria-current="page">User Profile</li>
   </ol>
 </nav>
-<!-- /Breadcrumb -->
+/Breadcrumb -->
     
 <div class="row gutters-sm">
 <div class="col-md-4 mb-3">
@@ -90,10 +90,21 @@
       </div>
       <hr>
       <div class="row">
-        <div class="col-sm-3">
+        <div class="col-sm-1">
+          @if (Model.EmailCode is null)
+          {
+            <h6 class="mb-0" title="Email is confirmed">+</h6>
+          }
+          else
+          {
+            <h6 class="mb-0" title="Email is not confirmed">-</h6>
+
+          }
+        </div>
+        <div class="col-sm-2">
           <h6 class="mb-0">Email</h6>
         </div>
-                    
+
         <div class="col-sm-8 text-secondary">
           @if (Model.IsEmailPublic)
           {
@@ -110,7 +121,7 @@
             <img role="button" style="height: 20px" src="~/imgs/icons/pencil.svg" data-ref-field="email"/>
           }
         </div>
-                    
+
       </div>
       <hr>
       <div class="row">
@@ -247,12 +258,12 @@
     editableTarget.setAttribute("contenteditable", "true");
     editableTarget.focus();
     editableTarget.onblur = e => finishEditing(e);
-    editableTarget.onkeydown = editableKeydown;
+    editableTarget.onkeyup = editableKeydown;
     editableTarget.oldContent = editableTarget.innerText;
   }
   
   function editableKeydown(e){
-    if(e.key === "Enter"){
+    if(["Enter", "Escape"].includes(e.key)){
       e.preventDefault();  
       e.target.blur();
       return false;
@@ -275,7 +286,19 @@
             field: element.id,
             value: element.innerText
           })
-        }).then(r => r.json()).then(console.log);
+        }).then(r => r.json()).then((r) => {
+          console.log(r);
+            if (r["status"] === "OK"){
+              const el = document.evaluate(`//h4[text()='${element.oldContent}']`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; 
+              console.log(el);
+              if (el !== null){
+                  el.innerText = element.innerText;
+                }
+            }
+            else{
+              element.innerText = element.oldContent;
+              }
+          });
       }
       else{
         element.innerText = element.oldContent;

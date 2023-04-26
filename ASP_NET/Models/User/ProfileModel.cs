@@ -6,6 +6,7 @@ public class ProfileModel
     public string Login { get; set; }
     public string RealName { get; set; }
     public string Email { get; set; }
+    public string? EmailCode { get; set; }
     public string? Avatar { get; set; }
     public DateTime RegisterDt { get; set; }
     public DateTime? LastEnterDt { get; set; }
