@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ASP_NET.Data;
 using ASP_NET.Data.Entity;
+using ASP_NET.Models;
 using ASP_NET.Models.User;
 using ASP_NET.Services.Email;
 using ASP_NET.Services.Hash;
@@ -266,6 +267,59 @@ namespace ASP_NET.Controllers
             }
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
+        public JsonResult ConfirmEmail([FromBody] String code)
+        {
+            StatusDataModel model = new();
+            if (String.IsNullOrEmpty(code))
+            {
+                model.Status = "400";
+                model.Data = "Missing required param: code";
+            }
+            else if (HttpContext.User.Identity?.IsAuthenticated != true)
+            {
+                model.Status = "401";
+                model.Data = "Authenticated";
+            }
+            else
+            {
+                User? user = null;
+                try
+                {
+                    user = _dataContext.Users
+                        .Find(Guid.Parse(
+                            HttpContext.User.Claims
+                                .First((claim) => claim.Type == ClaimTypes.Sid).Value
+                        ));
+                }
+                catch { }
+
+                if (user is null)
+                {
+                    model.Status = "403";
+                    model.Data = "Unauthorized";
+                }
+                else if (user.EmailCode is null)
+                {
+                    model.Status = "208";
+                    model.Data = "Already confirmed";
+                }
+                else if (user.EmailCode != code)
+                {
+                    model.Status = "406";
+                    model.Data = "Code Not Accepted";
+                }
+                else
+                {
+                    user.EmailCode = null;
+                    _dataContext.SaveChanges();
+                    model.Status = "200";
+                    model.Data = "OK";
+                }
+            }
+            return Json(model);
         }
 
         public IActionResult Profile([FromRoute] String id)

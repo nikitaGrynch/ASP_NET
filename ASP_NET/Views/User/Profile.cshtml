@@ -90,23 +90,24 @@
       </div>
       <hr>
       <div class="row">
-        <div class="col-sm-1">
-          @if (Model.EmailCode is null)
-          {
-            <h6 class="mb-0" title="Email is confirmed">+</h6>
-          }
-          else
-          {
-            <h6 class="mb-0" title="Email is not confirmed">-</h6>
-
-          }
-        </div>
-        <div class="col-sm-2">
-          <h6 class="mb-0">Email</h6>
+        <div class="col-sm-3">
+          <h6 class="mb-0">Email
+            @if (Model.IsPersonal)
+            {
+              if (Model.EmailCode is null)
+              {
+                <img src="~/imgs/icons/person-check.svg" class="color-filter-parakeet mb-1" title="Email is confirmed" alt="+"/>
+              }
+              else
+              {
+                <img src="~/imgs/icons/person-slash.svg" data-bs-toggle="modal" data-bs-target="#confirmModal" role="button" class="color-filter-candy mb-1" title="Email is not confirmed" alt="-"/>
+              }
+            }
+          </h6>
         </div>
 
         <div class="col-sm-8 text-secondary">
-          @if (Model.IsEmailPublic)
+          @if (Model.IsPersonal)
           {
             <span id="email" class="p-2">@Model.Email</span>
           }
@@ -242,11 +243,36 @@
 </div>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title" id="confirmModalLabel">Enter confirmation code</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+  <div class="modal-body">
+    <div class="input-group mb-3">
+      <span class="input-group-text" id="confirm-code-addon" >Code: </span>
+      <input type="text" class="form-control" id="confirm-code-input" placeholder="Code from email" aria-describedby="confirm-code-addon"/>
+    </div>
+  </div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+<button type="button" class="btn btn-primary" id="confirm-code-button">Save changes</button>
+</div>
+</div>
+</div>
+</div>
+
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     for (let element of document.querySelectorAll("[data-ref-field]")){
       element.addEventListener("click", editClick);
     }
+    const confirmCodeButton = document.getElementById("confirm-code-button");
+    if (!confirmCodeButton) console.error("confirm-code-button not found");
+    else confirmCodeButton.addEventListener("click", confirmCodeButtonClick);
   });
   function editClick(e){
     const targetId = e.target.getAttribute("data-ref-field");
@@ -308,4 +334,28 @@
     img.src = img.oldSrc;
     setTimeout(() => img.addEventListener("click", editClick), 200);
   }
+  
+  function confirmCodeButtonClick() {
+      const confirmCodeInput = document.getElementById("confirm-code-input");
+      if (!confirmCodeInput) throw "confirm-code-button not found";
+      const code = confirmCodeInput.value;
+      if(code.length === 0) {
+        alert("Code cannot be empty");
+        return;
+      }
+        window.fetch("/User/ConfirmEmail", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(code)
+      }).then(r=>r.json()).then(r => {
+        console.log(r);
+        if (r.status == "200") {
+          window.location.reload();
+        } else {
+          alert(r.data);
+        }
+      });
+   }
 </script>
