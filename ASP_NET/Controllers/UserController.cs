@@ -195,23 +195,14 @@ namespace ASP_NET.Controllers
                     EmailCode = _randomService.ConfirmCode(6)
                 };
                 _dataContext.Users.Add(user);
-                _dataContext.SaveChanges();
                 
+                // generate email confirmation token
+                var emailConfirmToken = _GenerateEmailToken(user);
+                _dataContext.SaveChanges();
+
                 // send email confirmation code
-                try
-                {
-                    _emailService.Send("confirm_email", new Models.Email.ConfirmEmailModel()
-                    {
-                        Email = user.Email,
-                        EmailCode = user.EmailCode,
-                        RealName = user.RealName,
-                        ConfirmUrl = "#"
-                    });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"_emailService error '{ex}'", ex.Message);
-                }
+                _SendConfirmEmail(user, emailConfirmToken);
+                
                 
                 return View(userRegistrationModel);
             }
@@ -322,6 +313,108 @@ namespace ASP_NET.Controllers
             return Json(model);
         }
 
+        public ViewResult ConfirmToken([FromQuery] String token)
+        {
+            Guid tokenId;
+            try
+            {
+                tokenId = Guid.Parse(token);
+                var emailConfirmToken = _dataContext.EmailConfirmTokens.Find(tokenId)
+                                        ?? throw new Exception();
+                var user = _dataContext.Users.Find(emailConfirmToken.UserId)
+                           ?? throw new Exception();
+                if (user.Email != emailConfirmToken.UserEmail) throw new Exception();
+                emailConfirmToken.Used++;
+                user.EmailCode = null;
+                _dataContext.SaveChanges();
+                ViewData["tokenResult"] = "Email successfully confirmed";
+            }
+            catch
+            {
+                ViewData["tokenResult"] = "Invalid token. Don't change link from email";
+                return View();
+            }
+
+            
+
+            
+            return View();
+        }
+
+        [HttpPatch]
+        public String ResendEmailCode()
+        {
+            if (HttpContext.User.Identity?.IsAuthenticated != true)
+            {
+                return "Authenticated";
+            }
+            else
+            {
+                User? user = null;
+                try
+                {
+                    user = _dataContext.Users
+                        .Find(Guid.Parse(
+                            HttpContext.User.Claims
+                                .First((claim) => claim.Type == ClaimTypes.Sid).Value
+                        ));
+                }
+                catch
+                {
+                }
+
+                if (user is null)
+                {
+                    return "Unauthorized";
+                }
+                // generate email confirmation token
+                var emailConfirmToken = _GenerateEmailToken(user);
+                
+                // also change user confirmation code
+                user.EmailCode = _randomService.ConfirmCode(6);
+                _dataContext.SaveChanges();
+                // send new email confirmation code
+                if (_SendConfirmEmail(user, emailConfirmToken)) return "OK";
+            }
+            return "Error sending Email";
+        }
+
+        private bool _SendConfirmEmail(Data.Entity.User user, Data.Entity.EmailConfirmToken emailConfirmToken)
+        {
+            if (user is null || emailConfirmToken is null) return false;
+
+            // send email confirmation code
+            try
+            {
+                return _emailService.Send("confirm_email", new Models.Email.ConfirmEmailModel()
+                {
+                    Email = user.Email,
+                    EmailCode = user.EmailCode!,
+                    RealName = user.RealName,
+                    ConfirmUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}/User/ConfirmToken?token={emailConfirmToken.Id}"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"_emailService error '{ex}'", ex.Message);
+                return false;
+            }
+        }
+
+        private EmailConfirmToken _GenerateEmailToken(Data.Entity.User user)
+        {
+            Data.Entity.EmailConfirmToken emailConfirmToken = new()
+            {
+                Id = Guid.NewGuid(),
+                UserEmail = user.Email,
+                UserId = user.Id,
+                Moment = DateTime.Now,
+                Used = 0
+            };
+            _dataContext.EmailConfirmTokens.Add(emailConfirmToken);
+            return emailConfirmToken;
+        }
+        
         public IActionResult Profile([FromRoute] String id)
         {
             //_logger.LogInformation(id);
@@ -419,6 +512,11 @@ namespace ASP_NET.Controllers
                         });
                     }
                     user.Email = model.Value;
+                    user.EmailCode = _randomService.ConfirmCode(6);
+                
+                    var emailConfirmToken = _GenerateEmailToken(user);
+                    _SendConfirmEmail(user, emailConfirmToken);
+                    
                     _dataContext.SaveChanges();
                     return Json(new
                     {

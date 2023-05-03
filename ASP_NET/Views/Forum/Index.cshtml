@@ -1,0 +1,47 @@
+@model ASP_NET.Models.Forum.ForumIndexModel
+
+@{
+    ViewData["Title"] = "Forum";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Forum</h1>
+</div>
+
+@foreach (var sec in Model.Sections)
+{
+    <p>@sec.Title</p>
+}
+
+@if (Model.UserCanCreate)
+{
+    <div class="row">
+        <div class="col col-6">
+            <h5>@(Model.FormModel?.Title is null ? "" : Model.FormModel.Title)</h5>
+            <h5 class="modal-title" id="authModalLabel">Create new section</h5>
+            @if (Model.CreateMessage is not null)
+            {
+                <div class="alert alert-@(Model.IsMessagePositive == true ? "success" : "danger")" role="alert">
+                    @Model.CreateMessage
+                </div>
+            }
+            <form asp-controller="Forum" asp-action="CreateSection" method="post">
+                <div class="form-group">
+                    <label for="section-title">Title</label>
+                    <input type="text" class="form-control"
+                           value="@(Model.FormModel is null ? "" : Model.FormModel.Title)"
+                           id="section-title" name="section-title"
+                           placeholder="Section Title"/>
+                </div>
+                <div class="form-group">
+                    <label for="section-description" class="form-label">Description</label>
+                    <textarea class="form-control" id="section-description" rows="3"
+                    value="@(Model.FormModel is null ? "" : Model.FormModel.Description)"
+                    name="section-description"
+                    placeholder="Section Description"></textarea>
+                </div>
+                <button type="submit" class="btn btn-light my-3">Create</button>
+            </form>
+        </div>
+    </div>
+}

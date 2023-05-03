@@ -258,6 +258,7 @@
     </div>
   </div>
 <div class="modal-footer">
+<button type="button" class="btn btn-warning mx-2" id="resend-code-button">Resend</button>
 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 <button type="button" class="btn btn-primary" id="confirm-code-button">Save changes</button>
 </div>
@@ -273,7 +274,12 @@
     const confirmCodeButton = document.getElementById("confirm-code-button");
     if (!confirmCodeButton) console.error("confirm-code-button not found");
     else confirmCodeButton.addEventListener("click", confirmCodeButtonClick);
+    
+    const resendCodeButton = document.getElementById("resend-code-button");
+        if (!resendCodeButton) console.error("resend-code-button not found");
+        else resendCodeButton.addEventListener("click", resendCodeButtonClick);
   });
+  
   function editClick(e){
     const targetId = e.target.getAttribute("data-ref-field");
     // console.log(targetId);
@@ -358,4 +364,19 @@
         }
       });
    }
+
+  function resendCodeButtonClick(){
+    window.fetch("/User/ResendEmailCode", {
+      method: "PATCH"
+    }).then(r => r.text()).then(t => {
+      console.log(t);
+      if (t === "OK"){
+        alert("Code sent");
+      }
+      else{
+        alert(t);
+      }
+    });
+  }
+   
 </script>
