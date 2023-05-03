@@ -10,14 +10,20 @@
 
 @foreach (var sec in Model.Sections)
 {
-    <p>@sec.Title</p>
+    <h2>@sec.Title</h2>
+    <ul>
+        <li>Id: @sec.Id</li>
+        <li>Author Id: @sec.AuthorId</li>
+        <li>Description: @sec.Description</li>
+        <li>Date of creation: @sec.CreatedDt</li>
+    </ul>
 }
 
 @if (Model.UserCanCreate)
 {
     <div class="row">
         <div class="col col-6">
-            <h5>@(Model.FormModel?.Title is null ? "" : Model.FormModel.Title)</h5>
+            <h5>@(Model.FormModel is null ? "" : Model.FormModel.Title)</h5>
             <h5 class="modal-title" id="authModalLabel">Create new section</h5>
             @if (Model.CreateMessage is not null)
             {
@@ -36,9 +42,8 @@
                 <div class="form-group">
                     <label for="section-description" class="form-label">Description</label>
                     <textarea class="form-control" id="section-description" rows="3"
-                    value="@(Model.FormModel is null ? "" : Model.FormModel.Description)"
                     name="section-description"
-                    placeholder="Section Description"></textarea>
+                    placeholder="Section Description">@(Model.FormModel is null ? "" : Model.FormModel.Description)</textarea>
                 </div>
                 <button type="submit" class="btn btn-light my-3">Create</button>
             </form>

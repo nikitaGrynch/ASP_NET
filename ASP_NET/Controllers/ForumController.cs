@@ -57,19 +57,14 @@ public class ForumController : Controller
     public RedirectToActionResult CreateSection([FromForm] ForumSectionFormModel model)
     {
         _logger.LogInformation("Title: {t}, Description: {d}", model.Title, model.Description);
-        if (!_validationService.Validate(model.Title, ValidationTerms.NotEmpty))
+        if (!_validationService.Validate(model.Title, ValidationTerms.NotEmpty)
+            || !_validationService.Validate(model.Description, ValidationTerms.NotEmpty))
         {
             HttpContext.Session.SetString("CreateMessage" ,"Title cannot be empty");
             HttpContext.Session.SetInt32("IsMessagePositive", 0);
             HttpContext.Session.SetString("SectionTitle", model.Title ?? String.Empty);
             HttpContext.Session.SetString("SectionDescription", model.Description ?? String.Empty);
-        }
-        else if (!_validationService.Validate(model.Description, ValidationTerms.NotEmpty))
-        {
-            HttpContext.Session.SetString("CreateMessage" ,"Description cannot be empty");
-            HttpContext.Session.SetInt32("IsMessagePositive", 0);
-            HttpContext.Session.SetString("SectionTitle", model.Title ?? String.Empty);
-            HttpContext.Session.SetString("SectionDescription", model.Description ?? String.Empty);
+
         }
         else
         {
@@ -85,6 +80,8 @@ public class ForumController : Controller
                     Description = model.Description,
                     CreatedDt = DateTime.Now
                 });
+                
+                _dataContext.SaveChanges();
                 HttpContext.Session.SetString("CreateMessage" ,"Section successfully created");
                 HttpContext.Session.SetInt32("IsMessagePositive", 1);
             }
