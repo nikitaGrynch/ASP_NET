@@ -3,7 +3,7 @@ namespace ASP_NET.Models.Forum;
 public class ForumIndexModel
 {
     public Boolean UserCanCreate { get; set; }
-    public List<Data.Entity.Section> Sections { get; set; } = null!;
+    public List<ForumSectionModel> Sections { get; set; } = null!;
     public String? CreateMessage { get; set; }
     
     public Boolean? IsMessagePositive { get; set; }

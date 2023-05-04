@@ -1,9 +1,11 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using ASP_NET.Data;
+using ASP_NET.Data.Entity;
 using ASP_NET.Models.Forum;
 using ASP_NET.Services.Validation;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.EntityFrameworkCore;
 
 namespace ASP_NET.Controllers;
 
@@ -12,22 +14,44 @@ public class ForumController : Controller
     private readonly DataContext _dataContext;
     private readonly ILogger<ForumController> _logger;
     private readonly IValidationService _validationService;
+    private int Counter
+    {
+        get => _counter++;
+        set { _counter = value; }
+    }
+
+    private int _counter;
 
     public ForumController(DataContext dataContext, ILogger<ForumController> logger, IValidationService validationService)
     {
         _dataContext = dataContext;
         _logger = logger;
         _validationService = validationService;
+        _counter = 0;
     }
 
     // GET
     public IActionResult Index()
     {
-       
         ForumIndexModel model = new()
         {
             UserCanCreate = HttpContext.User.Identity?.IsAuthenticated == true,
-            Sections = _dataContext.Sections.ToList()
+            Sections = _dataContext.Sections
+                .Include(s => s.Author)
+                .OrderBy(s => s.CreatedDt)
+                .AsEnumerable()
+                .Select(s => new ForumSectionModel()
+            {
+                Id = s.Id,
+                Title = s.Title,
+                Description = s.Description,
+                Logo = $"/imgs/logos/section{Counter}.png",
+                CreatedDtString = DateTime.Today == s.CreatedDt.Date ? 
+                    "Today " + s.CreatedDt.ToString("HH:mm") 
+                    : s.CreatedDt.ToString("dd.MM.yyyy HH:mm"),
+                AuthorName = s.Author.RealName,
+                AuthorAvatar = s.Author.Avatar is null ? null : $"/avatars/{s.Author.Avatar}"
+            }).ToList(),
         };
         if (HttpContext.Session.GetString("CreateMessage") is String message)
         {
@@ -94,5 +118,19 @@ public class ForumController : Controller
             }
         }
         return RedirectToAction(nameof(Index));
+    }
+
+    public IActionResult SectionPage([FromRoute] String id)
+    {
+        Data.Entity.Section section = _dataContext.Sections.FirstOrDefault(s => s.Id.ToString() == id);
+        if (section is not null)
+        {
+            ViewData["SectionId"] = section.Id;
+            return View();
+        }
+        else
+        {
+            return NotFound();
+        }
     }
 }

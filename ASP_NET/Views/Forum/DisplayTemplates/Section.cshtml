@@ -1,0 +1,26 @@
+@model ASP_NET.Models.Forum.ForumSectionModel
+
+<div class="card mb-3" style="max-width: 540px;">
+  <div class="row g-0">
+    <div class="col-md-3">
+      <img src="@Model.Logo" class="img-fluid rounded-start" alt="...">
+    </div>
+    <div class="col-md-9 d-flex flex-column">
+      <div class="card-body">
+        <a asp-controller="Forum" asp-action="SectionPage" asp-route-id="@Model.Id">
+        <h5 class="card-title">@Model.Title</h5>
+        </a>
+        <p class="card-text">@Model.Description</p>
+      </div>
+      <div class="card-footer">
+        Started: @Model.CreatedDtString 
+        @if (Model.AuthorAvatar is not null)
+        {
+          <img style="max-width: 50px; max-height: 50px" src="@Model.AuthorAvatar" alt="ava"/>
+        }
+        <a href="#!">@Model.AuthorName</a>
+      </div>
+    </div>
+    
+  </div>
+</div>

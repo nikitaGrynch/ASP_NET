@@ -8,16 +8,15 @@
     <h1 class="display-4">Forum</h1>
 </div>
 
-@foreach (var sec in Model.Sections)
-{
-    <h2>@sec.Title</h2>
-    <ul>
-        <li>Id: @sec.Id</li>
-        <li>Author Id: @sec.AuthorId</li>
-        <li>Description: @sec.Description</li>
-        <li>Date of creation: @sec.CreatedDt</li>
-    </ul>
-}
+<div class="row">
+    <div class="col col-8">
+    @foreach (var Section in Model.Sections)
+    {
+        @Html.DisplayFor(m => Section, "Section")
+        ;
+    }
+    </div>
+</div>
 
 @if (Model.UserCanCreate)
 {
