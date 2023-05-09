@@ -101,3 +101,9 @@ header{
 .color-filter-pear {
   filter: brightness(0) saturate(100%) invert(62%) sepia(43%) saturate(679%) hue-rotate(47deg) brightness(94%) contrast(89%);
 }
+
+/* Theme Tebplate */
+.ui-w-40{
+  max-width: 40px;
+  max-height: 40px;
+}

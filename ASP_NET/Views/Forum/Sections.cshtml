@@ -1,0 +1,51 @@
+@model ASP_NET.Models.Forum.ForumSectionsModel
+
+@{
+    ViewData["Title"] = "Forum";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Forum</h1>
+</div>
+
+<div class="row">
+    <div class="col col-8">
+        @foreach (var Theme in Model.Themes)
+        {
+            @Html.DisplayFor(m => Theme, "ThemeTemplate")
+        }
+    </div>
+</div>
+
+@if (Model.UserCanCreate)
+{
+    <div class="row">
+        <div class="col col-6">
+            <h5>@(Model.FormModel is null ? "" : Model.FormModel.Title)</h5>
+            <h5 class="modal-title" id="authModalLabel">Create new section</h5>
+            @if (Model.CreateMessage is not null)
+            {
+                <div class="alert alert-@(Model.IsMessagePositive == true ? "success" : "danger")" role="alert">
+                    @Model.CreateMessage
+                </div>
+            }
+            <form asp-controller="Forum" asp-action="CreateTheme" method="post">
+                <div class="form-group">
+                    <label for="theme-title">Title</label>
+                    <input type="text" class="form-control"
+                           value="@(Model.FormModel is null ? "" : Model.FormModel.Title)"
+                           id="theme-title" name="theme-title"
+                           placeholder="Section Title"/>
+                </div>
+                <div class="form-group">
+                    <label for="theme-description" class="form-label">Description</label>
+                    <textarea class="form-control" id="theme-description" rows="3"
+                    name="theme-description"
+                    placeholder="Section Description">@(Model.FormModel is null ? "" : Model.FormModel.Description)</textarea>
+                </div>
+                <input type="hidden" name="section-id" value="@ViewData["SectionId"]"/>
+                <button type="submit" class="btn btn-light my-3">Create</button>
+            </form>
+        </div>
+    </div>
+}
