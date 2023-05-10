@@ -1,0 +1,21 @@
+@model ASP_NET.Models.Forum.ForumTopicViewModel
+
+<div class="col">
+    <div class="card h-100">
+        <div class="card-header">
+            <div class="media d-flex align-items-center">
+                @Model.Title
+                <div class="media-body mx-2 ms-auto">
+                    <a href="javascript:void(0)" data-abc="true">@Model.AuthorName</a>
+                    <div class="text-muted small">
+                        @Model.CreatedDtString
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">@Model.Title</h5>
+            <p class="card-text">@Model.Description</p>
+        </div>
+    </div>
+</div>

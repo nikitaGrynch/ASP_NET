@@ -1,6 +1,7 @@
 using ASP_NET.Data;
 using ASP_NET.Middleware;
 using ASP_NET.Services;
+using ASP_NET.Services.Display;
 using ASP_NET.Services.Email;
 using ASP_NET.Services.Hash;
 using ASP_NET.Services.Kdf;
@@ -21,6 +22,7 @@ builder.Services.AddSingleton<IRandomService, RandomServiceV1>();
 builder.Services.AddSingleton<IKdfService, HashKdfService>();
 builder.Services.AddSingleton<IValidationService, ValidationServiceV1>();
 builder.Services.AddSingleton<IEmailService, GmailService>();
+builder.Services.AddSingleton<IDisplayService, DisplayServiceEng>();
 
 // Конфигурация НТТР-сессий
 builder.Services.AddDistributedMemoryCache();

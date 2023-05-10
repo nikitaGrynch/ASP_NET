@@ -30,5 +30,10 @@ public class DataContext : DbContext
             .HasOne(s => s.Author)
             .WithMany()
             .HasForeignKey(s => s.AuthorId);
+        
+        modelBuilder.Entity<Entity.Topic>()
+            .HasOne(s => s.Author)
+            .WithMany()
+            .HasForeignKey(s => s.AuthorId);
     }
 }
