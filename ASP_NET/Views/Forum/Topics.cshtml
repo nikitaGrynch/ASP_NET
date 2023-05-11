@@ -1,0 +1,50 @@
+@model ASP_NET.Models.Forum.ForumTopicsPageModel
+
+@{
+    ViewData["Title"] = "Topic";
+}
+
+<div class="text-center">
+    <h1 class="display-4">@Model.Title</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @Model.Description
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        @foreach (var Post in Model.Posts)
+        {
+            @Html.DisplayFor(m => Post, "PostTemplate")
+        }
+    </div>
+</div>
+
+@if (Model.UserCanCreate)
+{
+    <div class="row">
+        <div class="col col-6">
+            <h5 class="modal-title" id="authModalLabel">Answer</h5>
+            @if (Model.CreateMessage is not null)
+            {
+                <div class="alert alert-@(Model.IsMessagePositive == true ? "success" : "danger")" role="alert">
+                    @Model.CreateMessage
+                </div>
+            }
+            <form asp-controller="Forum" asp-action="CreatePost" method="post">
+                <div class="form-group">
+                    <label for="post-content" class="form-label">Question Text</label>
+                    <textarea class="form-control" id="post-content" rows="3"
+                    name="post-content"
+                    placeholder="Write the answer">@(Model.FormModel is null ? "" : Model.FormModel.Content)</textarea>
+                </div>
+                <input type="hidden" name="topic-id" value="@Model.TopicIdString"/>
+                <input type="hidden" name="reply-id" id="reply-id-input" value=""/>
+                <button type="submit" class="btn btn-light my-3">Send</button>
+            </form>
+        </div>
+    </div>
+}

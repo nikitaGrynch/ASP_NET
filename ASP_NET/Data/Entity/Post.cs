@@ -8,4 +8,8 @@ public class Post
     public String Content { get; set; } = null!;
     public Guid AuthorId { get; set; }
     public DateTime CreatedDt { get; set; }
+    
+    
+    public User Author { get; set; } = null!;
+    public Post? Reply { get; set; }
 }

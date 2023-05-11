@@ -1,0 +1,50 @@
+@model ASP_NET.Models.Forum.ForumPostViewModel
+<div class="media g-mb-30 media-comment row">
+  <div class="col col-1">
+    <img class="d-flex g-w-100 rounded-circle g-mt-3 g-mr-15" src="@Model.AuthorAvatar" alt="ava">
+  </div>
+  <div class="media-body u-shadow-v18 g-bg-secondary g-pa-30 col col-11">
+    <div class="g-mb-15">
+      <h5 class="h5 g-color-gray-dark-v1 mb-0">@Model.AuthorName</h5>
+      <span class="g-color-gray-dark-v4 g-font-size-12">@Model.CreatedDtString</span>
+    </div>
+
+    <p>
+      @Html.Raw(Model.Content.Replace("\n", "<br />"))
+    </p>
+
+    <ul class="list-inline d-flex my-0">
+      <li class="list-inline-item g-mr-20">
+        <a class="u-link-v5 g-color-gray-dark-v4 g-color-primary--hover" href="#!">
+          <i class="bi-hand-thumbs-up-fill g-pos-rel g-top-1 g-mr-3"></i>
+          178
+        </a>
+      </li>
+      <li class="list-inline-item g-mr-20">
+        <a class="u-link-v5 g-color-gray-dark-v4 g-color-primary--hover" href="#!">
+          <i class="bi-hand-thumbs-down-fill g-pos-rel g-top-1 g-mr-3"></i>
+          34
+        </a>
+      </li>
+      @if (Context.User.Identity is not null 
+           && Context.User.Identity.IsAuthenticated)
+      {
+        <li class="list-inline-item ms-auto">
+          <button id="reply-button" class="bi-reply-fill btn g-pos-rel g-top-1 g-mr-3">Reply</button>
+        </li>
+      }
+    </ul>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const replyButton = document.getElementById("reply-button");
+    if (!replyButton) throw "reply-button not found" ;
+      replyButton.addEventListener("click", replyClick);
+    });
+  function replyClick(){
+    document.getElementById("post-content").value = "Reply to:\n----------\n@(Model.Content[..30])\n----------\n\n";
+    document.getElementById("reply-id-input").value = "@Model.Id";
+    }
+</script>

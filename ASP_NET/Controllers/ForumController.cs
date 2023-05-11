@@ -265,6 +265,64 @@ public class ForumController : Controller
         return View(model);
     }
 
+    public IActionResult Topics([FromRoute] String id)
+    {
+        Data.Entity.Topic? topic = null!;
+        try
+        {
+            topic = _dataContext.Topics.Find(Guid.Parse(id));
+        }
+        catch { }
+
+        if (topic is null)
+        {
+            return NotFound();
+        }
+
+        ForumTopicsPageModel model = new()
+        {
+            UserCanCreate = HttpContext.User.Identity?.IsAuthenticated == true,
+            Title = topic.Title,
+            Description = topic.Description,
+            TopicIdString = id,
+            Posts = _dataContext
+                .Posts
+                .Include(p => p.Author)
+                .Include(p => p.Reply)
+                .Where(p => p.TopicId == topic.Id)
+                .Select(p => new ForumPostViewModel
+                {
+                    Id = p.Id.ToString(),
+                    Content = p.Content,
+                    CreatedDtString = _displayService.DaysAgoString(p.CreatedDt),
+                    AuthorAvatar = $"/avatars/{p.Author.Avatar ?? "no-avatar.png"}",
+                    AuthorName = p.Author.IsRealNamePublic ? p.Author.RealName : p.Author.Login,
+                    ReplyPreview = null
+                })
+                .ToList()
+        };
+        if (HttpContext.Session.GetString("CreateMessage") is String message)
+        {
+            model.CreateMessage = message;
+            model.IsMessagePositive =
+                HttpContext.Session.GetInt32("IsMessagePositive") != 0;
+            if (model.IsMessagePositive == false)
+            {
+                model.FormModel = new()
+                {
+                    Content = HttpContext.Session.GetString("PostContent")!,
+                    ReplyId = HttpContext.Session.GetString("PostReply")!
+                };
+                HttpContext.Session.Remove("PostContent");
+                HttpContext.Session.Remove("PostReply");
+            }
+            HttpContext.Session.Remove("CreateMessage");
+            HttpContext.Session.Remove("IsMessagePositive");
+        }
+        
+        return View(model);
+    }
+
     [HttpPost]
     public RedirectToActionResult CreateTopic(ForumTopicFormModel model)
     {
@@ -309,5 +367,49 @@ public class ForumController : Controller
             nameof(Themes),
             new { id = model.ThemeId }
         );
+    }
+
+    [HttpPost]
+    public RedirectToActionResult CreatePost(ForumPostFormModel model)
+    {
+        if (!_validationService.Validate(model.Content, ValidationTerms.NotEmpty))
+        {
+            HttpContext.Session.SetString("CreateMessage" ,"Answer cannot be empty");
+            HttpContext.Session.SetInt32("IsMessagePositive", 0);
+            HttpContext.Session.SetString("PostContent", model.Content ?? String.Empty);
+            HttpContext.Session.SetString("PostReply", model.ReplyId ?? String.Empty);
+
+        }
+        else
+        {
+            Guid userId;
+            try
+            {
+                userId = Guid.Parse(HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid)?.Value!);
+                _dataContext.Posts.Add(new()
+                {
+                    Id = Guid.NewGuid(),
+                    AuthorId = userId,
+                    Content = model.Content,
+                    ReplyId = String.IsNullOrEmpty(model.ReplyId) ? null : Guid.Parse(model.ReplyId),
+                    CreatedDt = DateTime.Now,
+                    TopicId = Guid.Parse(model.TopicId)
+                });
+                
+                _dataContext.SaveChanges();
+                HttpContext.Session.SetString("CreateMessage" ,"Answer successfully created");
+                HttpContext.Session.SetInt32("IsMessagePositive", 1);
+            }
+            catch
+            {
+                HttpContext.Session.SetString("CreateMessage" ,"Answer error");
+                HttpContext.Session.SetInt32("IsMessagePositive", 0);
+                HttpContext.Session.SetString("PostContent", model.Content ?? String.Empty);
+                HttpContext.Session.SetString("PostReply", model.ReplyId ?? String.Empty);
+            }
+        }
+        return RedirectToAction(
+            nameof(Topics),
+            new {id = model.TopicId});
     }
 }
