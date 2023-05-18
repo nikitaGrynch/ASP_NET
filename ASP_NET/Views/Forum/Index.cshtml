@@ -49,3 +49,37 @@
         </div>
     </div>
 }
+
+<script >
+    document.addEventListener("DOMContentLoaded", () => {
+        for (let elem of document.querySelectorAll("[data-rate]")) {
+            elem.addEventListener('click', rateClick);
+        }
+    });
+    function rateClick(e){
+        const userSidElement = document.querySelector("[data-user-sid]");
+        if (!userSidElement){
+            // unauthenticated
+            alert("You must be authenticated to rate");
+            return;
+        }
+        const target = e.target.closest("span");
+        const isGiven = target.getAttribute("data-rate-given") === "True";
+        const data = {
+            "itemId": target.getAttribute("data-rate"),
+            "userId": userSidElement.getAttribute("data-user-sid"),
+            "value": target.getAttribute("data-rate-value")
+        }
+        const apiMethod = isGiven ? "DELETE" : "POST";
+        console.log(data);
+        fetch("/api/rates", {
+             method: apiMethod,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+             })
+             .then(r => {if (r.status < 400) window.location.reload(); return r.json()})
+             .then(j => console.log(j));
+    }
+</script>

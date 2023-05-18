@@ -36,11 +36,15 @@ public class ForumController : Controller
     // GET
     public IActionResult Index()
     {
+        Counter = 0;
+        String? userId = HttpContext.User.Claims
+            .FirstOrDefault(c => c.Type == ClaimTypes.Sid)?.Value;
         ForumIndexModel model = new()
         {
             UserCanCreate = HttpContext.User.Identity?.IsAuthenticated == true,
             Sections = _dataContext.Sections
                 .Include(s => s.Author)
+                .Include(s => s.RateList)
                 .OrderBy(s => s.CreatedDt)
                 .AsEnumerable()
                 .Select(s => new ForumSectionModel()
@@ -53,9 +57,19 @@ public class ForumController : Controller
                     "Today " + s.CreatedDt.ToString("HH:mm") 
                     : s.CreatedDt.ToString("dd.MM.yyyy HH:mm"),
                 AuthorName = s.Author.RealName,
-                AuthorAvatar = s.Author.Avatar is null ? null : $"/avatars/{s.Author.Avatar}"
+                AuthorAvatar = s.Author.Avatar is null ? null : $"/avatars/{s.Author.Avatar}",
+                AuthorLogin = s.Author.Login,
+                LikesCount = s.RateList.Count(r => r.Rating > 0),
+                DislikesCount = s.RateList.Count(r => r.Rating < 0),
+                GivenRate = userId == null ? null
+                    : s.RateList.FirstOrDefault(r => r.UserId == Guid.Parse(userId))?.Rating,
             }).ToList(),
         };
+        foreach (var section in model.Sections)
+        {
+            section.Sights = _dataContext.Sights.AsEnumerable().Count(st => st.ItemId == Guid.Parse(section.UrlIdString));
+
+        }
         if (HttpContext.Session.GetString("CreateMessage") is String message)
         {
             model.CreateMessage = message;
@@ -126,6 +140,14 @@ public class ForumController : Controller
     public IActionResult Sections([FromRoute] String id)
     {
         ViewData["SectionId"] = id;
+        _dataContext.Sights.Add((new()
+        {
+            Id = Guid.NewGuid(),
+            Moment = DateTime.Now,
+            ItemId = Guid.Parse(id),
+            UserId = null
+        }));
+        _dataContext.SaveChanges();
         ForumSectionsModel model = new()
         {
             UserCanCreate = HttpContext.User.Identity?.IsAuthenticated == true,

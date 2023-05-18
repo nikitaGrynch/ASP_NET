@@ -1,6 +1,6 @@
 @model ASP_NET.Models.Forum.ForumSectionModel
 
-<div class="card mb-3" style="max-width: 540px;">
+<div class="card mb-3">
   <div class="row g-0">
     <div class="col-md-3">
       <img src="@Model.Logo" class="img-fluid rounded-start" alt="...">
@@ -12,13 +12,44 @@
         </a>
         <p class="card-text">@Model.Description</p>
       </div>
-      <div class="card-footer">
+      <div class="card-footer d-flex align-items-center">
         Started: @Model.CreatedDtString 
         @if (Model.AuthorAvatar is not null)
         {
           <img style="max-width: 50px; max-height: 50px" src="@Model.AuthorAvatar" alt="ava"/>
         }
-        <a href="#!">@Model.AuthorName</a>
+        <a asp-controller="User" asp-action="Profile" asp-route-id="@Model.AuthorLogin">@Model.AuthorName</a>
+        <span class="u-link-v5 g-color-gray-dark-v4 mx-3" role="button"
+              data-rate="@Model.UrlIdString" data-rate-value="1"
+              data-rate-given="@(Model.GivenRate == 1)">
+          @if (Model.GivenRate == 1)
+          {
+            <i class="bi-hand-thumbs-up-fill"></i>
+          }
+          else
+          {
+            <i class="bi-hand-thumbs-up"></i>
+          }
+          @Model.LikesCount
+        </span>
+        <span class="u-link-v5 g-color-gray-dark-v4 mx-3" role="button" 
+              data-rate="@Model.UrlIdString" data-rate-value="-1"
+              data-rate-given="@(Model.GivenRate == -1)">
+          @if (Model.GivenRate == -1)
+          {
+            <i class="bi-hand-thumbs-down-fill"></i>
+          }
+          else
+          {
+            <i class="bi-hand-thumbs-down"></i>
+          }          
+          @Model.DislikesCount
+        </span>
+        
+        <span class="mx-3">
+          <i class="bi bi-eyeglasses"></i>
+          @Model.Sights
+        </span>
       </div>
     </div>
     

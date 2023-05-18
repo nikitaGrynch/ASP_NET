@@ -12,6 +12,7 @@ public class DataContext : DbContext
     public DbSet<Entity.Post> Posts { get; set; }
     
     public DbSet<Entity.Rate> Rates { get; set; }
+    public DbSet<Entity.Sight> Sights { get; set; }
 
     public DataContext(DbContextOptions options) : base(options)
     {
@@ -25,6 +26,11 @@ public class DataContext : DbContext
             .HasOne(s => s.Author)
             .WithMany()
             .HasForeignKey(s => s.AuthorId);
+        
+        modelBuilder.Entity<Entity.Section>()
+            .HasMany(s => s.RateList)
+            .WithOne()
+            .HasForeignKey(r => r.ItemId);
         
         modelBuilder.Entity<Entity.Theme>()
             .HasOne(t => t.Author)
@@ -45,5 +51,7 @@ public class DataContext : DbContext
             .HasOne(p => p.Reply)
             .WithMany()
             .HasForeignKey(p => p.ReplyId);
+
+      
     }
 }
