@@ -30,7 +30,7 @@
                     @Model.CreateMessage
                 </div>
             }
-            <form asp-controller="Forum" asp-action="CreateSection" method="post">
+            <form asp-controller="Forum" asp-action="CreateSection" method="post" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="section-title">Title</label>
                     <input type="text" class="form-control"
@@ -43,6 +43,10 @@
                     <textarea class="form-control" id="section-description" rows="3"
                     name="section-description"
                     placeholder="Section Description">@(Model.FormModel is null ? "" : Model.FormModel.Description)</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="section-logo" class="form-label">Upload section logo</label>
+                    <input type="file" id="section-logo" name="section-logo" class="form-control" />
                 </div>
                 <button type="submit" class="btn btn-light my-3">Create</button>
             </form>

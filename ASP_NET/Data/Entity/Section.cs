@@ -10,4 +10,6 @@ public class Section
     public User Author { get; set; } = null!;
     public List<Rate> RateList { get; set; } = null!;
 
+    public String? Logo { get; set; } = null!;
+
 }

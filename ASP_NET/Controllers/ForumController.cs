@@ -4,6 +4,7 @@ using ASP_NET.Data;
 using ASP_NET.Data.Entity;
 using ASP_NET.Models.Forum;
 using ASP_NET.Services.Display;
+using ASP_NET.Services.Random;
 using ASP_NET.Services.Validation;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ public class ForumController : Controller
     private readonly ILogger<ForumController> _logger;
     private readonly IValidationService _validationService;
     private readonly IDisplayService _displayService;
+    private readonly IRandomService _randomService;
     private int Counter
     {
         get => _counter++;
@@ -24,12 +26,13 @@ public class ForumController : Controller
 
     private int _counter;
 
-    public ForumController(DataContext dataContext, ILogger<ForumController> logger, IValidationService validationService, IDisplayService displayService)
+    public ForumController(DataContext dataContext, ILogger<ForumController> logger, IValidationService validationService, IDisplayService displayService, IRandomService randomService)
     {
         _dataContext = dataContext;
         _logger = logger;
         _validationService = validationService;
         _displayService = displayService;
+        _randomService = randomService;
         _counter = 0;
     }
 
@@ -52,7 +55,7 @@ public class ForumController : Controller
                 UrlIdString = s.Id.ToString(),
                 Title = s.Title,
                 Description = s.Description,
-                Logo = $"/imgs/logos/section{Counter}.png",
+                Logo = $"/imgs/logos/{(s.Logo is null ? "section" + Counter.ToString() + ".png" : s.Logo)}",
                 CreatedDtString = DateTime.Today == s.CreatedDt.Date ? 
                     "Today " + s.CreatedDt.ToString("HH:mm") 
                     : s.CreatedDt.ToString("dd.MM.yyyy HH:mm"),
@@ -113,14 +116,31 @@ public class ForumController : Controller
             try
             {
                 userId = Guid.Parse(HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid)?.Value!);
-                _dataContext.Sections.Add(new()
+                Section section = new()
                 {
                     Id = Guid.NewGuid(),
                     AuthorId = userId,
                     Title = model.Title,
                     Description = model.Description,
-                    CreatedDt = DateTime.Now
-                });
+                    CreatedDt = DateTime.Now,
+                };
+                if (model.Logo is not null)
+                {
+                    String ext = Path.GetExtension((model.Logo.FileName));
+                    String name = _randomService.RandomFileName(16);
+                    String logoFilename = name + ext;
+                    string path = "wwwroot/imgs/logos/" + logoFilename;
+                    using (var fileStream = new FileStream(
+                               path,
+                               FileMode.Create))
+                    {
+                        model.Logo.CopyTo(fileStream);
+                        section.Logo = logoFilename;
+                    }
+
+                }
+
+                _dataContext.Sections.Add(section);
                 
                 _dataContext.SaveChanges();
                 HttpContext.Session.SetString("CreateMessage" ,"Section successfully created");

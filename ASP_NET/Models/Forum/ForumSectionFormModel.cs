@@ -8,5 +8,7 @@ public class ForumSectionFormModel
     public String Title { get; set; } = null!;
     [FromForm(Name = "section-description")]
     public String Description { get; set; } = null!;
+    [FromForm(Name = "section-logo")]
+    public IFormFile Logo { get; set; } = null!;
 
 }

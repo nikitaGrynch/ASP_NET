@@ -22,7 +22,7 @@
     <div class="row">
         <div class="col col-6">
             <h5>@(Model.FormModel is null ? "" : Model.FormModel.Title)</h5>
-            <h5 class="modal-title" id="authModalLabel">Create new section</h5>
+            <h5 class="modal-title" id="authModalLabel">Create new theme</h5>
             @if (Model.CreateMessage is not null)
             {
                 <div class="alert alert-@(Model.IsMessagePositive == true ? "success" : "danger")" role="alert">
@@ -43,8 +43,13 @@
                     name="theme-description"
                     placeholder="Section Description">@(Model.FormModel is null ? "" : Model.FormModel.Description)</textarea>
                 </div>
+                <div class="form-group">
+                    <label for="section-logo" class="form-label">Upload section logo</label>
+                    <input type="file" id="section-logo" name="section-logo" class="form-control" />
+                </div>
                 <input type="hidden" name="section-id" value="@ViewData["SectionId"]"/>
                 <button type="submit" class="btn btn-light my-3">Create</button>
+               
             </form>
         </div>
     </div>
